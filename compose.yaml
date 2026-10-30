@@ -1,0 +1,67 @@
+# ==============================================================================
+# VerityScout AI — Local Development Services Configuration
+# ==============================================================================
+# This configuration is STRICTLY for local development and integration testing.
+# Governed by: ADR-009 (PostgreSQL Platform) and ADR-010 (Redis & BullMQ Queue).
+#
+# Usage:
+#   npm run services:up     - Start local services in the background
+#   npm run services:down   - Stop local services (preserves data volumes)
+#   npm run services:logs   - Stream service logs
+#   npm run services:status - Check service health and running status
+#
+# NOTE: Docker is optional for current Phase 2 foundation work. Web, lint, test,
+# and build commands run 100% locally without requiring containers.
+# ==============================================================================
+
+name: verityscout-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: verityscout-dev-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-verityscout}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-verityscout_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-verityscout_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-verityscout} -d ${POSTGRES_DB:-verityscout_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - verityscout-dev-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: verityscout-dev-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-verityscout_redis_dev}"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-verityscout_redis_dev}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - verityscout-dev-net
+
+networks:
+  verityscout-dev-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: verityscout_dev_postgres_data
+  redis_data:
+    name: verityscout_dev_redis_data

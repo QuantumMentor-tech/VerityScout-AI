@@ -1,0 +1,21 @@
+{
+  "fixture_id": "FIX-CASE-001",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "PC Case listing omitting required dimensions and fan count specifications to test partially verified status.",
+  "target_url": "https://synthetic-pcparts.internal/cases/fractal-north-xl",
+  "canonical_url": "https://synthetic-pcparts.internal/cases/fractal-north-xl",
+  "http_status": 200,
+  "observed_at": "2026-10-30T10:00:00Z",
+  "page_metadata": {
+    "title": "Fractal Design North XL Mesh Charcoal Black PC Case",
+    "currency": "USD",
+    "price": 179.99,
+    "condition": "NEW",
+    "availability": "IN_STOCK",
+    "form_factor": "E-ATX / ATX",
+    "dimensions": null,
+    "included_fans": null
+  },
+  "raw_dom_snippet": "<div class=\"case-summary\"><h1>Fractal Design North XL Mesh Charcoal Black</h1><p class=\"cost\">$179.99</p><p>Supports E-ATX, ATX motherboards. Elegant real oak front.</p><div class=\"specs\"><!-- Fans and dimension details missing from merchant summary --></div></div>"
+}

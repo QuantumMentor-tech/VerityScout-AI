@@ -1,0 +1,17 @@
+{
+  "fixture_id": "FIX-STOCK-001",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "Scraped product page featuring ambiguous call-to-order stock phrasing. System must classify stock as UNCONFIRMED rather than fabricating in-stock state.",
+  "target_url": "https://synthetic-niche-distributor.internal/parts/custom-waterblock-am5",
+  "http_status": 200,
+  "observed_at": "2026-10-30T10:00:00Z",
+  "page_metadata": {
+    "title": "EK-Quantum Velocity2 D-RGB AM5 Nickel + Plexi",
+    "currency": "USD",
+    "price": 149.99,
+    "condition": "NEW",
+    "stock_raw_text": "Inventory status variable - please contact sales department for regional fulfillment lead times"
+  },
+  "raw_dom_snippet": "<div class=\"prod-box\"><h2>EK-Quantum Velocity2 D-RGB AM5</h2><span class=\"price\">$149.99</span><div class=\"lead-time-notice\"><p>Inventory status variable - please contact sales department for regional fulfillment lead times</p></div></div>"
+}

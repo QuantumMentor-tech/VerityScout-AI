@@ -1,0 +1,15 @@
+{
+  "fixture_id": "FIX-NET-001",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "Extraction failure returning HTTP 504 Gateway Timeout. System must classify as UNREACHABLE_SOURCE and never infer that product is out of stock.",
+  "target_url": "https://synthetic-down-store.internal/inventory/crucial-t700-2tb-ssd",
+  "http_status": 504,
+  "error_code": "ETIMEDOUT",
+  "observed_at": "2026-10-30T10:00:00Z",
+  "response_headers": {
+    "server": "cloudflare",
+    "content-type": "text/html"
+  },
+  "raw_body": "<html><head><title>504 Gateway Time-out</title></head><body><center><h1>504 Gateway Time-out</h1></center></body></html>"
+}

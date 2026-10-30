@@ -1,0 +1,965 @@
+openapi: 3.1.0
+info:
+  title: VerityScout AI API
+  version: 1.0.0
+  description: Official versioned RESTful API specification for VerityScout AI autonomous multi-source research and deterministic verification.
+servers:
+  - url: /api/v1
+    description: Current API v1 base path
+
+paths:
+  /health:
+    get:
+      summary: Liveness and Readiness Probe
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy and operational
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /capabilities:
+    get:
+      summary: System Capabilities and Active Limits
+      operationId: getCapabilities
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Operational capabilities and active limits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilitiesResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /research-tasks:
+    get:
+      summary: List Research Tasks
+      operationId: listResearchTasks
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Paginated list of research tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResearchTask'
+                  totalCount:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      summary: Create Research Task
+      operationId: createResearchTask
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResearchTaskRequest'
+      responses:
+        '201':
+          description: Research task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchTask'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /research-tasks/{taskId}:
+    get:
+      summary: Get Research Task by ID
+      operationId: getResearchTask
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Research task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchTask'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    patch:
+      summary: Update Research Task
+      operationId: updateResearchTask
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateResearchTaskRequest'
+      responses:
+        '200':
+          description: Updated research task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchTask'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      summary: Delete Research Task (Cascading Purge)
+      operationId: deleteResearchTask
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Task and all associated runs and evidence permanently deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /research-runs:
+    post:
+      summary: Dispatch New Research Run (Asynchronous)
+      operationId: startResearchRun
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartResearchRunRequest'
+      responses:
+        '202':
+          description: Research run accepted and enqueued in BullMQ
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchRunEnqueueResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /research-runs/{runId}:
+    get:
+      summary: Get Research Run Status and Telemetry
+      operationId: getResearchRun
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Research run status details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchRun'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /research-runs/{runId}/events:
+    get:
+      summary: Stream Real-Time Progress Events (SSE)
+      operationId: streamRunEvents
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Server-Sent Events stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /research-runs/{runId}/cancel:
+    post:
+      summary: Request Run Cancellation
+      operationId: cancelResearchRun
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cancellation requested
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: CANCELLATION_REQUESTED
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /research-runs/{runId}/results:
+    get:
+      summary: Retrieve Verified Categorized Findings
+      operationId: getRunResults
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: classification
+          in: query
+          schema:
+            $ref: '#/components/schemas/MatchClassification'
+      responses:
+        '200':
+          description: Research findings grouped by match classification tier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunResultsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /research-runs/{runId}/sources:
+    get:
+      summary: List Discovered Web Sources
+      operationId: getRunSources
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Array of extracted source documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SourceDocument'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /research-runs/{runId}/evidence:
+    get:
+      summary: List Verified Fact Evidence Records
+      operationId: getRunEvidence
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Array of verified evidence records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvidenceRecord'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /research-runs/{runId}/export:
+    get:
+      summary: Export Research Report in Structured Formats
+      operationId: exportResearchReport
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [json, csv, markdown]
+      responses:
+        '200':
+          description: Sanitized exported report file stream
+          content:
+            application/json:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: string
+            text/markdown:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /settings/providers:
+    get:
+      summary: List Configured Provider Key Statuses
+      operationId: listProviders
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of provider configurations with masked keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProviderStatus'
+    post:
+      summary: Store User Provider API Key (AES-256 Encrypted)
+      operationId: setProviderKey
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, apiKey]
+              properties:
+                provider:
+                  type: string
+                  enum: [openai, openrouter, nim, tavily, firecrawl]
+                apiKey:
+                  type: string
+                  minLength: 10
+      responses:
+        '200':
+          description: Credential securely stored in vault
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /settings/providers/test:
+    post:
+      summary: Ephemeral Provider Connection Test
+      operationId: testProviderKey
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider]
+              properties:
+                provider:
+                  type: string
+                  enum: [openai, openrouter, nim, tavily]
+                apiKey:
+                  type: string
+                  description: Optional key override to test before saving
+      responses:
+        '200':
+          description: Connection probe result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  latencyMs:
+                    type: integer
+
+  /schedules:
+    get:
+      summary: List Recurring Monitoring Schedules
+      operationId: listSchedules
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResearchSchedule'
+    post:
+      summary: Create Recurring Monitoring Schedule
+      operationId: createSchedule
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduleRequest'
+      responses:
+        '201':
+          description: Schedule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchSchedule'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /schedules/{scheduleId}/changes:
+    get:
+      summary: List Detected Price and Stock Changes
+      operationId: getScheduleChanges
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chronological change events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChangeEvent'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: vs_session
+
+  responses:
+    ValidationError:
+      description: Invalid request payload or Zod schema violation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedError:
+      description: Session cookie missing or expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Resource not found or not owned by user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimitError:
+      description: Rate limit or concurrency limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Invalid input parameters
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  issue:
+                    type: string
+            requestId:
+              type: string
+              example: req_01h8abc123
+            retryable:
+              type: boolean
+              default: false
+
+    HealthResponse:
+      type: object
+      required: [status, version, timestamp]
+      properties:
+        status:
+          type: string
+          example: HEALTHY
+        version:
+          type: string
+          example: 1.0.0
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          properties:
+            database:
+              type: string
+            redis:
+              type: string
+
+    CapabilitiesResponse:
+      type: object
+      required: [supportedProviders, limits]
+      properties:
+        supportedProviders:
+          type: array
+          items:
+            type: string
+        limits:
+          type: object
+          properties:
+            maxSourcesPerRun:
+              type: integer
+            maxSearchQueriesPerRun:
+              type: integer
+            maxRunCostUsd:
+              type: string
+            minScheduleIntervalHours:
+              type: integer
+
+    ResearchTask:
+      type: object
+      required: [id, userId, title, originalQuery, taskType, constraints, limits, isArchived, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        originalQuery:
+          type: string
+        taskType:
+          $ref: '#/components/schemas/TaskType'
+        constraints:
+          type: object
+        limits:
+          type: object
+        modelPolicy:
+          type: object
+        isArchived:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateResearchTaskRequest:
+      type: object
+      required: [title, originalQuery, taskType]
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        originalQuery:
+          type: string
+          maxLength: 500
+        taskType:
+          $ref: '#/components/schemas/TaskType'
+        constraints:
+          type: object
+        limits:
+          type: object
+        modelPolicy:
+          type: object
+
+    UpdateResearchTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        constraints:
+          type: object
+        limits:
+          type: object
+        isArchived:
+          type: boolean
+
+    StartResearchRunRequest:
+      type: object
+      required: [taskId]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+
+    ResearchRunEnqueueResponse:
+      type: object
+      required: [runId, taskId, status, currentStage, eventsUrl]
+      properties:
+        runId:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        currentStage:
+          $ref: '#/components/schemas/RunStage'
+        eventsUrl:
+          type: string
+
+    ResearchRun:
+      type: object
+      required: [id, taskId, status, currentStage, stageCounters, usage, startedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        currentStage:
+          $ref: '#/components/schemas/RunStage'
+        stageCounters:
+          type: object
+        usage:
+          type: object
+        selectedProvider:
+          type: string
+        selectedModel:
+          type: string
+        errorMessage:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+
+    SourceDocument:
+      type: object
+      required: [id, runId, originalUrl, canonicalUrl, domain, title, accessState, extractionState, retrievedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        runId:
+          type: string
+          format: uuid
+        originalUrl:
+          type: string
+        canonicalUrl:
+          type: string
+        domain:
+          type: string
+        title:
+          type: string
+        accessState:
+          type: string
+        extractionState:
+          type: string
+        extractedTextExcerpt:
+          type: string
+        retrievedAt:
+          type: string
+          format: date-time
+
+    EvidenceRecord:
+      type: object
+      required: [id, runId, sourceId, claimKey, extractedRawValue, verbatimQuote, verificationState, extractedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        runId:
+          type: string
+          format: uuid
+        sourceId:
+          type: string
+          format: uuid
+        claimKey:
+          type: string
+        extractedRawValue:
+          type: string
+        normalizedValue:
+          type: [string, number]
+        verbatimQuote:
+          type: string
+        verificationState:
+          $ref: '#/components/schemas/VerificationState'
+        extractedAt:
+          type: string
+          format: date-time
+
+    RunResultsResponse:
+      type: object
+      required: [runId, summaryMarkdown, resultsByTier]
+      properties:
+        runId:
+          type: string
+          format: uuid
+        summaryMarkdown:
+          type: string
+        resultsByTier:
+          type: object
+          properties:
+            exactMatches:
+              type: array
+              items:
+                type: object
+            nearMatches:
+              type: array
+              items:
+                type: object
+            partiallyVerified:
+              type: array
+              items:
+                type: object
+            conflicting:
+              type: array
+              items:
+                type: object
+            excluded:
+              type: array
+              items:
+                type: object
+
+    ProviderStatus:
+      type: object
+      required: [provider, isConfigured]
+      properties:
+        provider:
+          type: string
+        isConfigured:
+          type: boolean
+        maskedKey:
+          type: string
+        connectionStatus:
+          type: string
+
+    ResearchSchedule:
+      type: object
+      required: [id, taskId, userId, status, cronExpression, timezone, nextRunAt, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        cronExpression:
+          type: string
+        timezone:
+          type: string
+        nextRunAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateScheduleRequest:
+      type: object
+      required: [taskId, cronExpression, timezone]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        cronExpression:
+          type: string
+          description: Standard 5-field cron. Minimum interval must be >= 6 hours.
+        timezone:
+          type: string
+          default: UTC
+        changeNotificationThresholdPct:
+          type: number
+          default: 2.0
+
+    ChangeEvent:
+      type: object
+      required: [id, taskId, scheduleId, previousRunId, currentRunId, changeType, fieldName, previousValue, newValue, detectedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        scheduleId:
+          type: string
+          format: uuid
+        previousRunId:
+          type: string
+          format: uuid
+        currentRunId:
+          type: string
+          format: uuid
+        changeType:
+          type: string
+        fieldName:
+          type: string
+        previousValue:
+          type: string
+        newValue:
+          type: string
+        percentageDelta:
+          type: number
+        candidateTitle:
+          type: string
+        canonicalUrl:
+          type: string
+        detectedAt:
+          type: string
+          format: date-time
+
+    TaskType:
+      type: string
+      enum: [PRODUCT_RESEARCH, GENERAL_RESEARCH, PRICE_MONITOR, SPEC_VERIFICATION]
+
+    RunStatus:
+      type: string
+      enum: [QUEUED, RUNNING, COMPLETED, PARTIALLY_COMPLETED, FAILED, CANCELLATION_REQUESTED, CANCELLED]
+
+    RunStage:
+      type: string
+      enum: [INITIATED, PLANNING, SEARCHING, EXTRACTING, VERIFYING, SYNTHESIZING, FINALIZING]
+
+    MatchClassification:
+      type: string
+      enum: [EXACT_MATCH, NEAR_MATCH, PARTIALLY_VERIFIED, CONFLICTING, EXCLUDED]
+
+    VerificationState:
+      type: string
+      enum: [SUPPORTED, CONTRADICTED, UNKNOWN, CONFLICTING, STALE]

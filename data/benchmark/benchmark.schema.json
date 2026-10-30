@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verityscout.ai/schemas/benchmark-case.schema.json",
+  "title": "VerityScoutBenchmarkCase",
+  "description": "Validation schema for individual VerityScout AI benchmark test cases (VS-BENCH-001 through VS-BENCH-060).",
+  "type": "object",
+  "required": [
+    "case_id",
+    "title",
+    "category",
+    "task_type",
+    "query",
+    "priority",
+    "difficulty",
+    "ground_truth_mode",
+    "expected_behavior",
+    "expected_constraints",
+    "required_checks",
+    "forbidden_outcomes",
+    "source_references",
+    "fixture_references",
+    "source_validation_status",
+    "traceability",
+    "notes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "pattern": "^VS-BENCH-(0[0-5][0-9]|060)$",
+      "description": "Unique stable identifier between VS-BENCH-001 and VS-BENCH-060."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 150,
+      "description": "Concise human-readable title describing the benchmark test case."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "hardware_research",
+        "pc_components",
+        "general_research",
+        "constraint_ambiguity",
+        "evidence_integrity_failures"
+      ],
+      "description": "One of the 5 mandatory evaluation categories."
+    },
+    "task_type": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 50,
+      "description": "Specific research task sub-type."
+    },
+    "query": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 1000,
+      "description": "The exact natural-language research query submitted by the user."
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2"],
+      "description": "Requirement priority classification."
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "medium", "hard", "adversarial"],
+      "description": "Complexity tier of query parsing, source retrieval, or verification."
+    },
+    "ground_truth_mode": {
+      "type": "string",
+      "enum": ["static", "synthetic_fixture", "live_snapshot"],
+      "description": "Method of ground-truth grounding: static parsing, synthetic fixture, or time-stamped live snapshot."
+    },
+    "expected_behavior": {
+      "type": "string",
+      "minLength": 20,
+      "description": "Detailed explanation of expected end-to-end system execution."
+    },
+    "expected_constraints": {
+      "type": "object",
+      "required": [
+        "target_entity",
+        "price_ceiling",
+        "price_floor",
+        "currency",
+        "market_region",
+        "condition",
+        "mandatory_attributes",
+        "excluded_attributes",
+        "excluded_domains",
+        "clarification_needed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "target_entity": {
+          "type": ["string", "null"]
+        },
+        "price_ceiling": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "price_floor": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "currency": {
+          "type": ["string", "null"]
+        },
+        "market_region": {
+          "type": ["string", "null"]
+        },
+        "condition": {
+          "type": ["string", "null"],
+          "enum": ["NEW", "USED", "REFURBISHED", "ANY", null]
+        },
+        "mandatory_attributes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "excluded_attributes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "excluded_domains": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "clarification_needed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "required_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["check_id", "dimension", "assertion", "eval_type"],
+        "additionalProperties": false,
+        "properties": {
+          "check_id": { "type": "string" },
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "query_understanding",
+              "constraint_satisfaction",
+              "evidence_support",
+              "dynamic_fact_correctness",
+              "research_integrity",
+              "operational_transparency"
+            ]
+          },
+          "assertion": { "type": "string" },
+          "eval_type": {
+            "type": "string",
+            "enum": ["exact_match", "deterministic_rule", "provenance_check", "schema_validation", "state_assertion"]
+          }
+        }
+      }
+    },
+    "forbidden_outcomes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "source_references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url", "role", "title", "validation_status", "checked_at", "supported_claim", "evidence_note", "source_tier"],
+        "additionalProperties": false,
+        "properties": {
+          "url": { "type": "string" },
+          "role": { "type": "string" },
+          "title": { "type": "string" },
+          "validation_status": {
+            "type": "string",
+            "enum": ["verified", "pending_revalidation", "fixture", "not_applicable"]
+          },
+          "checked_at": { "type": ["string", "null"] },
+          "supported_claim": { "type": "string" },
+          "evidence_note": { "type": "string" },
+          "source_tier": {
+            "type": "string",
+            "enum": ["manufacturer_official", "retailer_primary", "benchmark_authoritative", "fixture_synthetic", "secondary_aggregator"]
+          }
+        }
+      }
+    },
+    "fixture_references": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "source_validation_status": {
+      "type": "string",
+      "enum": [
+        "verified_live_snapshot",
+        "synthetic_fixture_backed",
+        "query_parsing_only",
+        "pending_live_revalidation"
+      ]
+    },
+    "traceability": {
+      "type": "object",
+      "required": ["requirements", "acceptance_criteria"],
+      "additionalProperties": false,
+      "properties": {
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "acceptance_criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

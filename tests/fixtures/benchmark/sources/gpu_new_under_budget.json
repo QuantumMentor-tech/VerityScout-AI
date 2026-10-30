@@ -1,0 +1,20 @@
+{
+  "fixture_id": "FIX-GPU-001",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "Valid e-commerce listing for an RTX 4070 Super priced below $600 in NEW condition.",
+  "target_url": "https://synthetic-retailer-apex.internal/products/rtx-4070-super-12gb-oc",
+  "canonical_url": "https://synthetic-retailer-apex.internal/products/rtx-4070-super-12gb-oc",
+  "http_status": 200,
+  "observed_at": "2026-10-30T10:00:00Z",
+  "page_metadata": {
+    "title": "Apex Gaming - MSI GeForce RTX 4070 Super 12GB Ventus 2X OC (New)",
+    "currency": "USD",
+    "price": 589.99,
+    "condition": "NEW",
+    "availability": "IN_STOCK",
+    "sku": "MSI-RTX4070S-V2X",
+    "brand": "MSI"
+  },
+  "raw_dom_snippet": "<div class=\"product-details\"><h1 class=\"title\">MSI GeForce RTX 4070 Super 12GB Ventus 2X OC</h1><span class=\"badge\">Condition: Factory Sealed Brand New</span><div class=\"price-block\"><span class=\"currency\">$</span><span class=\"amount\">589.99</span></div><p class=\"stock in-stock\">In Stock (Ready to Ship)</p><div class=\"specs\"><ul><li>Memory: 12GB GDDR6X</li><li>DisplayPort: 3x v1.4a, HDMI: 1x 2.1a</li></ul></div></div>"
+}

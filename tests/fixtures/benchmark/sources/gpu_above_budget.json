@@ -1,0 +1,19 @@
+{
+  "fixture_id": "FIX-GPU-002",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "GPU listing exceeding user budget ceiling by $0.01 to test strict deterministic ceiling enforcement.",
+  "target_url": "https://synthetic-retailer-nova.internal/items/rtx4070-super-asus-dual",
+  "canonical_url": "https://synthetic-retailer-nova.internal/items/rtx4070-super-asus-dual",
+  "http_status": 200,
+  "observed_at": "2026-10-30T10:00:00Z",
+  "page_metadata": {
+    "title": "Nova Tech - ASUS Dual GeForce RTX 4070 Super 12GB White",
+    "currency": "USD",
+    "price": 600.01,
+    "condition": "NEW",
+    "availability": "IN_STOCK",
+    "sku": "ASUS-DUAL-4070S-W"
+  },
+  "raw_dom_snippet": "<div class=\"product\"><h1 itemprop=\"name\">ASUS Dual GeForce RTX 4070 Super 12GB White</h1><div class=\"pricing\"><meta itemprop=\"priceCurrency\" content=\"USD\"/><span class=\"price\">$600.01</span></div><span class=\"condition-tag\">New</span></div>"
+}

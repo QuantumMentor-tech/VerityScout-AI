@@ -1,0 +1,15 @@
+{
+  "fixture_id": "FIX-DEDUP-001",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "Set of 5 raw search engine URLs pointing to the exact same canonical e-commerce product page with different affiliate and tracking parameters.",
+  "canonical_url": "https://synthetic-megastore.internal/products/samsung-990-pro-2tb",
+  "raw_discovered_urls": [
+    "https://synthetic-megastore.internal/products/samsung-990-pro-2tb?utm_source=google&utm_medium=cpc&utm_campaign=blackfriday",
+    "https://synthetic-megastore.internal/products/samsung-990-pro-2tb?ref=techaffiliate_123&subid=forum_post",
+    "https://synthetic-megastore.internal/products/samsung-990-pro-2tb?gclid=EAIaIQobChMI789abc_fake_click_id",
+    "https://synthetic-megastore.internal/products/samsung-990-pro-2tb#specifications",
+    "https://synthetic-megastore.internal/products/samsung-990-pro-2tb?session_id=9876543210&source=retargeting"
+  ],
+  "expected_deduplicated_count": 1
+}

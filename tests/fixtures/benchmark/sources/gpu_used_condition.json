@@ -1,0 +1,19 @@
+{
+  "fixture_id": "FIX-GPU-003",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "GPU priced under budget but in Refurbished condition to test condition filter enforcement.",
+  "target_url": "https://synthetic-warehouse-deals.internal/deals/rtx-4070-super-renewed",
+  "canonical_url": "https://synthetic-warehouse-deals.internal/deals/rtx-4070-super-renewed",
+  "http_status": 200,
+  "observed_at": "2026-10-30T10:00:00Z",
+  "page_metadata": {
+    "title": "Warehouse Deals - Gigabyte RTX 4070 Super Eagle OC 12G (Refurbished)",
+    "currency": "USD",
+    "price": 529.99,
+    "condition": "REFURBISHED",
+    "availability": "IN_STOCK",
+    "sku": "GV-N407SEAGLE-OC-12GD-REFURB"
+  },
+  "raw_dom_snippet": "<div class=\"deal\"><h2 class=\"prod-title\">Gigabyte RTX 4070 Super Eagle OC 12G</h2><div class=\"condition-badge warning\">Condition: Certified Refurbished (Grade A)</div><span class=\"price-tag\">$529.99</span></div>"
+}

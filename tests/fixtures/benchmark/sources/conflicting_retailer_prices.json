@@ -1,0 +1,27 @@
+{
+  "fixture_id": "FIX-PRICE-001",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "Two verified extractions from different retailers showing contradictory pricing for the exact same hardware model.",
+  "target_sku": "AMD-RYZEN7-7800X3D",
+  "listings": [
+    {
+      "source_name": "Retailer Alpha",
+      "url": "https://synthetic-alpha-hardware.internal/cpus/amd-ryzen-7-7800x3d",
+      "observed_at": "2026-10-30T09:30:00Z",
+      "price": 389.00,
+      "currency": "USD",
+      "condition": "NEW",
+      "snippet": "<div class=\"p-block\"><h1>AMD Ryzen 7 7800X3D</h1><span class=\"price\">$389.00</span><span class=\"stock\">In Stock</span></div>"
+    },
+    {
+      "source_name": "Retailer Beta",
+      "url": "https://synthetic-beta-tech.internal/processors/7800x3d-retail",
+      "observed_at": "2026-10-30T09:35:00Z",
+      "price": 449.00,
+      "currency": "USD",
+      "condition": "NEW",
+      "snippet": "<div class=\"item\"><h1>AMD Ryzen 7 7800X3D Processor 8-Core</h1><span class=\"our-price\">$449.00</span><span class=\"stock\">In Stock</span></div>"
+    }
+  ]
+}

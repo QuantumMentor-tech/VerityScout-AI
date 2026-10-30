@@ -1,0 +1,438 @@
+{
+  "$schema": "https://verityscout.ai/schemas/provider-eval-results.schema.json",
+  "version": "1.0.0",
+  "evaluation_date": "2026-10-30T10:00:00Z",
+  "execution_status": "DOCUMENTATION_EVALUATION_COMPLETED_LIVE_TESTING_PENDING_AUTHORIZATION",
+  "authorization_notice": "Live external API calls to commercial endpoints were not executed during Step 3 due to pending explicit test budget authorization. All empirical metrics are documented as NOT_MEASURED in accordance with Section 5.1.",
+  "pilot_summary": {
+    "total_pilot_cases": 12,
+    "evaluated_search_providers": ["Tavily", "Exa"],
+    "evaluated_extraction_providers": ["Firecrawl", "Direct_HTTP_Fetch"],
+    "request_limits": {
+      "max_queries_per_provider": 12,
+      "max_results_per_query": 5,
+      "max_page_extractions": 12,
+      "max_spend_envelope_usd": 2.00
+    }
+  },
+  "results": [
+    {
+      "pilot_id": "P-01",
+      "case_id": "VS-BENCH-001",
+      "query": "Find an NVIDIA GeForce RTX 4070 Super 12GB graphics card in new condition under $600 USD with at least 3 DisplayPort outputs in the US market.",
+      "category": "hardware_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": {
+            "search_depth": "basic",
+            "max_results": 5,
+            "include_domains": []
+          },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)",
+          "notes": "Basic search consumes 1 credit ($0.008 at PAYG rate)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": {
+            "type": "auto",
+            "useAutoprompt": true,
+            "numResults": 5
+          },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)",
+          "notes": "Fast search consumes $0.007 per request"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-02",
+      "case_id": "VS-BENCH-002",
+      "query": "Find the best price for an RTX 4080 Super 16GB New under $1000 USD. Do not include older non-Super 4080 or 4070 Ti models.",
+      "category": "hardware_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-03",
+      "case_id": "VS-BENCH-003",
+      "query": "Search for AMD Radeon RX 7800 XT graphics cards in Germany under €520 EUR in new condition. Exclude marketplace sellers without direct warranty.",
+      "category": "hardware_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-04",
+      "case_id": "VS-BENCH-005",
+      "query": "Find an RTX 4080 Super GPU under $1050 with card length strictly under 305mm and at least 2 HDMI 2.1 ports for dual TV setup.",
+      "category": "hardware_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-05",
+      "case_id": "VS-BENCH-008",
+      "query": "Find an Intel Core i5-14600K processor under $280 USD. Must have verified integrated graphics (Intel UHD 770); do not accept KF variants without iGPU.",
+      "category": "hardware_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-06",
+      "case_id": "VS-BENCH-012",
+      "query": "Find an RTX 4070 Ti Super graphics card under $800 USD in new condition.",
+      "category": "hardware_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-07",
+      "case_id": "VS-BENCH-016",
+      "query": "Find an ATX mid-tower PC case under $120 USD with pre-installed Addressable RGB fans and an integrated ARGB hardware controller hub.",
+      "category": "pc_components",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-08",
+      "case_id": "VS-BENCH-018",
+      "query": "Find a Small Form Factor Mini-ITX PC case with total internal volume strictly under 15 liters, supporting SFX power supplies and a 2.5-slot GPU, under $180 USD.",
+      "category": "pc_components",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-09",
+      "case_id": "VS-BENCH-020",
+      "query": "Find an ATX case under $90 USD that includes at least 4 pre-installed 120mm or 140mm PWM fans.",
+      "category": "pc_components",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-10",
+      "case_id": "VS-BENCH-026",
+      "query": "Compare real-world game loading times and sustained write temperatures between the Samsung 990 Pro and WD Black SN850X based on independent lab benchmarks.",
+      "category": "general_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-11",
+      "case_id": "VS-BENCH-028",
+      "query": "What is the latest stable release of the Linux kernel, who maintains it, and what is its official end-of-life projection according to kernel.org?",
+      "category": "general_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    },
+    {
+      "pilot_id": "P-12",
+      "case_id": "VS-BENCH-038",
+      "query": "What is the official maximum transmission unit (MTU) size for standard Ethernet frames according to IEEE 802.3 standards?",
+      "category": "general_research",
+      "evaluations": [
+        {
+          "provider": "Tavily",
+          "endpoint": "https://api.tavily.com/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "search_depth": "basic", "max_results": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.008,
+          "evidence_class": "Class A (Documented Capability)"
+        },
+        {
+          "provider": "Exa",
+          "endpoint": "https://api.exa.ai/search",
+          "test_status": "NOT_MEASURED_AUTHORIZATION_REQUIRED",
+          "sanitized_configuration": { "type": "auto", "useAutoprompt": true, "numResults": 5 },
+          "returned_result_count": null,
+          "unique_domains": null,
+          "relevant_result_count": null,
+          "reference_source_recovery": "PENDING_LIVE_EXECUTION",
+          "latency_ms": null,
+          "estimated_cost_usd": 0.007,
+          "evidence_class": "Class A (Documented Capability)"
+        }
+      ]
+    }
+  ]
+}

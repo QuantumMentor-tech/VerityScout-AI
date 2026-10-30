@@ -1,0 +1,18 @@
+{
+  "fixture_id": "FIX-TIME-001",
+  "fixture_type": "synthetic_source",
+  "is_synthetic": true,
+  "description": "Historical price observation from 180 days prior. Must be classified as STALE_RECORD and flagged for active revalidation.",
+  "target_url": "https://synthetic-archive.internal/deals/archive-2026/corsair-rm850x-power-supply",
+  "http_status": 200,
+  "published_at": "2026-04-15T08:00:00Z",
+  "observed_at": "2026-04-15T08:00:00Z",
+  "current_time_reference": "2026-10-30T10:00:00Z",
+  "page_metadata": {
+    "title": "Corsair RM850x 850W 80 PLUS Gold Fully Modular ATX Power Supply",
+    "currency": "USD",
+    "price": 109.99,
+    "availability": "EXPIRED_DEAL"
+  },
+  "raw_dom_snippet": "<div class=\"deal-archive\"><span class=\"timestamp\">Published: April 15, 2026</span><h1 class=\"title\">Corsair RM850x 850W Gold PSU</h1><span class=\"price-historical\">$109.99</span><p class=\"notice\">This promotional rate expired on April 18, 2026.</p></div>"
+}

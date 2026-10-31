@@ -36,6 +36,7 @@
   line-height: var(--line-height-normal);
 }
 
+.workspaceGrid,
 .placeholderGrid {
   display: grid;
   grid-template-columns: 2fr 1fr;

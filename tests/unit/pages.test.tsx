@@ -17,12 +17,13 @@ vi.mock('next/navigation', () => ({
 }));
 
 describe('Step 15 Page Shells', () => {
-  it('renders Research Workspace page shell with disclosure notice', () => {
+  it('renders Research Workspace page with QueryComposer and workflow notice', () => {
     render(<ResearchPage />);
 
     expect(screen.getByRole('heading', { level: 1, name: /research workspace/i })).toBeInTheDocument();
-    expect(screen.getByText(/Query Composer Reserved Region/i)).toBeInTheDocument();
-    expect(screen.getByText(/Sample Data & Scaffolding Notice/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /research query composer/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/research question or topic/i)).toBeInTheDocument();
+    expect(screen.getByText(/Research Workflow Staging Notice/i)).toBeInTheDocument();
   });
 
   it('renders Research Run Detail page shell for valid demo-run-001', async () => {

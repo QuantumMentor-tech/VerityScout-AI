@@ -229,7 +229,8 @@ The project follows a structured 60-step roadmap across 12 phases:
   - `Step 13`: Responsive Application Shell, Navigation, Header, and Sidebar (`AppShell`, `AppHeader`, `AppSidebar`, `MobileNavDrawer`, `APP_SHELL_AND_NAVIGATION.md`).
   - `Step 14`: Reusable Design-System Components (Buttons, Cards, Dialogs, Tooltips, Form Controls, Badges, Alerts, States, `COMPONENTS.md`).
   - `Step 15`: Application Page and Route Shells with Fixture Data (`PAGE_SHELLS_AND_FIXTURES.md`, `ROUTE_MAP.md`, 5 route shells, deterministic fixtures).
-  - `Step 16`: Research Query Composer & Input Experience *(Next)*.
+  - `Step 16`: Research Query Composer & Input Experience (`QUERY_COMPOSER.md`, `QueryComposer`, deterministic local validation, 1,000 char boundary).
+  - `Step 17`: Multi-Dimensional Research Constraints Editor *(Next)*.
 - [ ] **Phase 4: Deterministic Constraint & Verification Engine (Steps 21–28)**
 - [ ] **Phase 5: AI Provider Routing & Analysis Engine (Steps 29–35)**
 - [ ] **Phase 6: Persistence, Queue & Background Worker Architecture (Steps 36–42)**

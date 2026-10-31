@@ -6,7 +6,7 @@ test.describe('VerityScout AI — Step 15 Route Shells & Fixture Navigation', ()
       {
         path: '/research',
         expectedHeading: /research workspace/i,
-        expectedNotice: /Sample Data & Scaffolding Notice/i,
+        expectedNotice: /(Sample Data & Scaffolding Notice|Research Workflow Staging Notice)/i,
       },
       {
         path: '/history',

@@ -21,7 +21,7 @@ $$\text{Requirement} \longrightarrow \text{Acceptance Criteria} \longrightarrow 
 
 | Req ID | Acceptance Criteria | Governing ADR | Canonical Domain Contract | API Endpoint Operation | Threat & Security Req | Target Step | Future Test Evidence |
 |---|---|---|---|---|---|---|---|
-| **UR-001** | AC-001 | ADR-001, ADR-008 | `ResearchTask` | `POST /api/v1/research-tasks` | SEC-024 | Step 11, 23 | Vitest Zod parser test |
+| **UR-001** | AC-001 | ADR-001, ADR-008 | `ResearchTask` | `POST /api/v1/research-tasks` | SEC-024 | Step 16, 23 | Vitest QueryComposer & Playwright E2E |
 | **UR-002** | AC-002 | ADR-007, ADR-008 | `ResearchTask.constraints` | `POST /api/v1/research-tasks` | SEC-024 | Step 16, 23 | Vitest constraint extraction |
 | **UR-003** | AC-003 | ADR-006, ADR-010 | `ProviderCredentialMetadata` | `GET /api/v1/settings/providers` | SEC-001, SEC-034 | Step 26, 28 | Vitest provider model discovery |
 | **UR-004** | AC-004 | ADR-006 | `ResearchTask.modelPolicy` | `POST /api/v1/research-runs` | SEC-031 | Step 42 | Unit test fallback whitelist (`SEC-TEST-016`) |

@@ -19,7 +19,7 @@ describe('Home Page (Startup Experience)', () => {
 
   it('renders the foundation status badge with status role', () => {
     render(<Home />);
-    const badge = screen.getByRole('status');
+    const badge = screen.getByText(/Foundation Initialized & Verified/i).closest('[role="status"]');
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveTextContent(/Foundation Initialized & Verified/i);
   });

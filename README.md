@@ -223,9 +223,13 @@ The project follows a structured 60-step roadmap across 12 phases:
   - `Step 8`: Automated Testing Foundation & CI (Vitest 5, React Testing Library, Playwright Chromium, GitHub Actions).
   - `Step 9`: Environment Validation, Logging & Secret Redaction (Zod + `server-only`, structured JSON logger, typed errors, error boundaries).
   - `Step 10`: Application Module Skeleton, Local Services & Architecture Documentation (Modular skeleton, `compose.yaml`, developer scripts, and architecture docs).
-  - `Step 11`: Design System, UI Tokens, and Accessibility Foundations *(Next)*.
-  - `Step 12`: Phase 2 Review, Static Verification, and CI Readiness.
-- [ ] **Phase 3: Web Discovery, Provider Adapters & Extraction Pipeline (Steps 13–20)**
+  - `Step 11`: Design Tokens, Typography, Spacing, and Accessible Dark Color Palette (Centralized tokens, WCAG 2.2 AA contrast matrix, `DESIGN_TOKENS.md`).
+  - `Step 12`: Dynamic Cyan-to-Violet Transition and Reduced-Motion Preference Control (Brand gradient keyframes, `ReduceMotionControl` component, `MOTION_AND_ACCESSIBILITY.md`).
+- [ ] **Phase 3: Core Application Shell & Design Foundations (Steps 13–20)**
+  - `Step 13`: Responsive Application Shell, Navigation, Header, and Sidebar (`AppShell`, `AppHeader`, `AppSidebar`, `MobileNavDrawer`, `APP_SHELL_AND_NAVIGATION.md`).
+  - `Step 14`: Reusable Design-System Components (Buttons, Cards, Dialogs, Tooltips, Form Controls, Badges, Alerts, States, `COMPONENTS.md`).
+  - `Step 15`: Application Page and Route Shells with Fixture Data (`PAGE_SHELLS_AND_FIXTURES.md`, `ROUTE_MAP.md`, 5 route shells, deterministic fixtures).
+  - `Step 16`: Research Query Composer & Input Experience *(Next)*.
 - [ ] **Phase 4: Deterministic Constraint & Verification Engine (Steps 21–28)**
 - [ ] **Phase 5: AI Provider Routing & Analysis Engine (Steps 29–35)**
 - [ ] **Phase 6: Persistence, Queue & Background Worker Architecture (Steps 36–42)**

@@ -1,0 +1,151 @@
+/* ==============================================================================
+   VerityScout AI — Mobile Navigation Drawer Stylesheet
+   ==============================================================================
+   Governed by: Step 13 (Responsive Application Shell & Navigation)
+   Uses: Step 11 Design Tokens & Step 12 Motion Policy
+   ============================================================================== */
+
+/* Wrapper container */
+.container {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    display: none;
+  }
+}
+
+/* Semi-transparent backdrop */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+}
+
+.backdropOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Slide-in drawer panel */
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 280px;
+  max-width: 85vw;
+  background-color: var(--color-surface-secondary);
+  border-right: 1px solid var(--color-border);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-4);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform 0.25s ease-in-out, visibility 0.25s ease-in-out;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.drawerOpen {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brandLogo {
+  width: 24px;
+  height: 24px;
+}
+
+.brandTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.brandAccent {
+  color: var(--color-accent-cyan-text);
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.closeButton:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.closeButton:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.closeIcon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.navBody {
+  flex: 1;
+}
+
+.drawerFooter {
+  padding-top: var(--space-4);
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .drawer {
+    transition: none !important;
+  }
+}
+
+:global(html[data-reduce-motion="true"]) .backdrop,
+:global(html[data-reduce-motion="true"]) .drawer {
+  transition: none !important;
+}

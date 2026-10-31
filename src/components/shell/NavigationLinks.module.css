@@ -1,0 +1,131 @@
+/* ==============================================================================
+   VerityScout AI — Navigation Links Stylesheet
+   ==============================================================================
+   Governed by: Step 13 (Responsive Application Shell & Navigation)
+   Uses: Step 11 Design Tokens (Vanilla CSS Modules)
+   ============================================================================== */
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.groupHeading {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  color: var(--color-text-muted);
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-1);
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+}
+
+.listItem {
+  margin: 0;
+  padding: 0;
+}
+
+/* Functional interactive link */
+.link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  min-height: 40px;
+}
+
+.link:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.link:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Active current-route state */
+.linkActive {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-cyan-text);
+  background-color: var(--color-accent-cyan-subtle);
+  border-left: 3px solid var(--color-accent-cyan);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  min-height: 40px;
+}
+
+.linkActive:hover {
+  background-color: var(--color-accent-cyan-subtle);
+  color: var(--color-accent-cyan-text);
+  text-decoration: none;
+}
+
+.linkActive:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Disabled future destination (non-clickable) */
+.itemDisabled {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-disabled);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  border-left: 3px solid transparent;
+  user-select: none;
+  cursor: default;
+  min-height: 40px;
+}
+
+.itemLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.badge {
+  font-size: 0.6875rem; /* 11px */
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background-color: var(--palette-slate-800);
+  color: var(--palette-slate-400);
+  border: 1px solid var(--palette-slate-700);
+}

@@ -1,19 +1,218 @@
+/* ==============================================================================
+   VerityScout AI — Design Tokens & Global Stylesheet
+   ==============================================================================
+   Governed by: ADR-001 (Vanilla CSS Modules & Custom Properties)
+   Accessibility: WCAG 2.2 AA Contrast Compliance (>= 4.5:1 normal text, >= 3:1 non-text)
+   Established in: Step 11 of 60 (Design Tokens, Typography, Spacing, Accessible Dark Palette)
+   ============================================================================== */
+
 :root {
-  --color-bg: #090d16;
-  --color-surface: #111827;
-  --color-surface-elevated: #1e293b;
-  --color-border: #334155;
-  --color-text: #f8fafc;
-  --color-text-muted: #94a3b8;
-  --color-accent-cyan: #06b6d4;
-  --color-accent-violet: #8b5cf6;
-  --color-success: #10b981;
+  /* ----------------------------------------------------------------------------
+     1. Primitive Palette Scales
+     ---------------------------------------------------------------------------- */
+  /* Slate Scale (Darks to Near-White) */
+  --palette-slate-950: #090d16; /* Deep navy base background */
+  --palette-slate-900: #0f172a; /* Secondary background / deep surface */
+  --palette-slate-850: #111827; /* Primary card / container surface */
+  --palette-slate-800: #1e293b; /* Elevated surface / notice box */
+  --palette-slate-750: #253349; /* Interactive hover surface */
+  --palette-slate-700: #334155; /* Default structural border */
+  --palette-slate-600: #475569; /* Intermediate border / disabled text */
+  --palette-slate-500: #64748b; /* Strong high-contrast border (>= 3:1) */
+  --palette-slate-400: #94a3b8; /* Muted supporting text (>= 4.5:1) */
+  --palette-slate-300: #cbd5e1; /* Secondary body text (>= 4.5:1) */
+  --palette-slate-200: #e2e8f0; /* Crisp secondary accent */
+  --palette-slate-100: #f1f5f9; /* Near-white highlight */
+  --palette-slate-50:  #f8fafc; /* Primary near-white text (>= 13.9:1) */
+  --palette-white:     #ffffff;
+
+  /* Cyan Brand Scale */
+  --palette-cyan-900: #164e63;
+  --palette-cyan-800: #155e75;
+  --palette-cyan-600: #0891b2;
+  --palette-cyan-500: #06b6d4; /* Canonical cyan brand accent */
+  --palette-cyan-400: #22d3ee; /* Accessible cyan link & focus text (>= 8.0:1) */
+  --palette-cyan-300: #67e8f9; /* Cyan hover & bright highlight */
+
+  /* Violet Brand Scale */
+  --palette-violet-900: #4c1d95;
+  --palette-violet-800: #5b21b6;
+  --palette-violet-600: #7c3aed;
+  --palette-violet-500: #8b5cf6; /* Canonical violet brand accent */
+  --palette-violet-400: #a78bfa; /* Accessible violet text on dark surfaces (>= 5.3:1) */
+  --palette-violet-300: #c4b5fd; /* Violet hover & bright highlight */
+
+  /* Semantic Status Primitives */
+  --palette-emerald-500: #10b981;
+  --palette-emerald-400: #34d399; /* Accessible success text (>= 9.2:1) */
+  --palette-amber-500:   #f59e0b;
+  --palette-amber-400:   #fbbf24; /* Accessible warning text (>= 10.6:1) */
+  --palette-rose-500:    #ef4444;
+  --palette-rose-400:    #f87171; /* Accessible danger text (>= 6.4:1) */
+  --palette-sky-500:     #3b82f6;
+  --palette-sky-400:     #60a5fa; /* Accessible info text (>= 6.9:1) */
+
+  /* ----------------------------------------------------------------------------
+     2. Semantic Surface & Background Tokens
+     ---------------------------------------------------------------------------- */
+  --color-background: var(--palette-slate-950);
+  --color-bg: var(--color-background); /* Compatibility alias */
+  --color-surface: var(--palette-slate-850);
+  --color-surface-secondary: var(--palette-slate-900);
+  --color-surface-elevated: var(--palette-slate-800);
+  --color-surface-hover: var(--palette-slate-750);
+  --color-surface-subtle: rgba(255, 255, 255, 0.03);
+
+  /* ----------------------------------------------------------------------------
+     3. Semantic Border & Divider Tokens
+     ---------------------------------------------------------------------------- */
+  --color-border: var(--palette-slate-700);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-strong: var(--palette-slate-500);
+  --color-border-focus: var(--palette-cyan-400);
+
+  /* ----------------------------------------------------------------------------
+     4. Semantic Text Tokens
+     ---------------------------------------------------------------------------- */
+  --color-text-primary: var(--palette-slate-50);
+  --color-text: var(--color-text-primary); /* Compatibility alias */
+  --color-text-secondary: var(--palette-slate-300);
+  --color-text-muted: var(--palette-slate-400);
+  --color-text-inverse: var(--palette-slate-950);
+  --color-text-disabled: var(--palette-slate-600);
+  --color-text-placeholder: var(--palette-slate-400);
+
+  /* ----------------------------------------------------------------------------
+     5. Brand Accent & Focus Tokens
+     ---------------------------------------------------------------------------- */
+  --color-accent-cyan: var(--palette-cyan-500);
+  --color-accent-cyan-subtle: rgba(6, 182, 212, 0.12);
+  --color-accent-cyan-border: rgba(6, 182, 212, 0.28);
+  --color-accent-cyan-text: var(--palette-cyan-400);
+
+  --color-accent-violet: var(--palette-violet-500);
+  --color-accent-violet-subtle: rgba(139, 92, 246, 0.12);
+  --color-accent-violet-border: rgba(139, 92, 246, 0.28);
+  --color-accent-violet-text: var(--palette-violet-400);
+
+  --color-accent-strong: var(--palette-cyan-400);
+  --color-on-accent: var(--palette-slate-950);
+
+  --color-link: var(--palette-cyan-400);
+  --color-link-hover: var(--palette-cyan-300);
+  --color-focus-ring: var(--palette-cyan-400);
+
+  /* ----------------------------------------------------------------------------
+     6. Semantic Status Feedback Tokens
+     ---------------------------------------------------------------------------- */
+  --color-success: var(--palette-emerald-400);
+  --color-success-subtle: rgba(16, 185, 129, 0.12);
+  --color-success-border: rgba(16, 185, 129, 0.3);
+
+  --color-warning: var(--palette-amber-400);
+  --color-warning-subtle: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.3);
+
+  --color-danger: var(--palette-rose-400);
+  --color-danger-subtle: rgba(239, 68, 68, 0.12);
+  --color-danger-border: rgba(239, 68, 68, 0.3);
+
+  --color-info: var(--palette-sky-400);
+  --color-info-subtle: rgba(59, 130, 246, 0.12);
+  --color-info-border: rgba(59, 130, 246, 0.3);
+
+  /* ----------------------------------------------------------------------------
+     7. Typography Tokens
+     ---------------------------------------------------------------------------- */
+  /* Font Families */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Font Size Scale */
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-md: 1rem;      /* 16px - Base Body */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 2rem;     /* 32px - Section / Page Display */
+
+  /* Line Heights */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+
+  /* ----------------------------------------------------------------------------
+     8. Spacing Scale Tokens (4px / 0.25rem base increment)
+     ---------------------------------------------------------------------------- */
+  --space-0: 0;
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+  --space-20: 5rem;    /* 80px */
+
+  /* ----------------------------------------------------------------------------
+     9. Layout Sizing Tokens
+     ---------------------------------------------------------------------------- */
+  --layout-max-width: 1200px;
+  --layout-card-max-width: 640px;
+  --layout-gutter: var(--space-6);
+  --layout-gutter-sm: var(--space-4);
+
+  /* ----------------------------------------------------------------------------
+     10. Radii & Border Widths
+     ---------------------------------------------------------------------------- */
+  --radius-none: 0;
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  --border-width-sm: 1px;
+  --border-width-md: 2px;
+
+  /* ----------------------------------------------------------------------------
+     11. Elevation & Shadow Tokens
+     ---------------------------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+
+  /* ----------------------------------------------------------------------------
+     12. Motion Tokens (Step 12)
+     ---------------------------------------------------------------------------- */
+  --motion-duration-brand: 14s;
+  --motion-easing-brand: ease-in-out;
 }
 
+/* ----------------------------------------------------------------------------
+   13. Base Document Reset & Typography Defaults
+   ---------------------------------------------------------------------------- */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -24,18 +223,57 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
   font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Selection */
+::selection {
+  background-color: var(--palette-cyan-800);
+  color: var(--palette-slate-50);
 }
 
+/* Links */
+a {
+  color: var(--color-link);
+  text-decoration: none;
+  transition: color 0.15s ease-in-out;
+}
+
+a:hover {
+  color: var(--color-link-hover);
+  text-decoration: underline;
+}
+
+/* Keyboard Focus Indicators (WCAG 2.2 SC 2.4.7 & 2.4.11) */
+:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ----------------------------------------------------------------------------
+   14. Keyframe Animations
+   ---------------------------------------------------------------------------- */
+@keyframes brandGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   15. Accessibility: System & In-App Reduced Motion Policy
+   ---------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -45,4 +283,16 @@ a {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  :root {
+    --motion-duration-brand: 0s !important;
+  }
+}
+
+/* In-app reduced motion preference override */
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  animation: none !important;
+  transition: none !important;
 }

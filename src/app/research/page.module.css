@@ -1,0 +1,68 @@
+/* ==============================================================================
+   VerityScout AI — Research Workspace Stylesheet
+   ==============================================================================
+   Governed by: Step 15 (Route and Page Shells)
+   Uses: Step 11 Design Tokens
+   ============================================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  max-width: var(--layout-max-width);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-tight);
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+  max-width: 720px;
+  line-height: var(--line-height-normal);
+}
+
+.placeholderGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+}
+
+@media (max-width: 900px) {
+  .placeholderGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.placeholderBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+}
+
+.sampleRunCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

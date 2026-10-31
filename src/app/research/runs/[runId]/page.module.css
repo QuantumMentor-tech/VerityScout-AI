@@ -1,0 +1,97 @@
+/* ==============================================================================
+   VerityScout AI — Research Run Detail Stylesheet
+   ==============================================================================
+   Governed by: Step 15 (Route and Page Shells)
+   Uses: Step 11 Design Tokens
+   ============================================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  max-width: var(--layout-max-width);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.backLink {
+  font-size: var(--font-size-sm);
+  color: var(--color-link);
+  margin-bottom: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.runQuery {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+.metaRow {
+  display: flex;
+  gap: var(--space-6);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.candidatesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.attributeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+@media (max-width: 640px) {
+  .attributeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.attributeItem {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-xs);
+}
+
+.attributeKey {
+  color: var(--color-text-muted);
+}
+
+.attributeValue {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}

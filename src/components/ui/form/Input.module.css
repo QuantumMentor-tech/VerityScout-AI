@@ -1,0 +1,74 @@
+/* ==============================================================================
+   VerityScout AI — Input Stylesheet
+   ==============================================================================
+   Governed by: Step 14 (Reusable UI Components)
+   Uses: Step 11 Design Tokens
+   ============================================================================== */
+
+.input {
+  width: 100%;
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+.input:focus-visible {
+  border-color: var(--color-border-focus);
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* Sizing Scale */
+.sm {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.md {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.lg {
+  min-height: 48px;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-md);
+}
+
+/* Invalid State */
+.invalid {
+  border-color: var(--palette-rose-400);
+}
+
+.invalid:focus-visible {
+  border-color: var(--palette-rose-400);
+  outline-color: var(--palette-rose-400);
+}
+
+/* Disabled and Readonly States */
+.input:disabled {
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-subtle);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.input:read-only:not(:disabled) {
+  background-color: var(--color-surface-secondary);
+  cursor: default;
+}

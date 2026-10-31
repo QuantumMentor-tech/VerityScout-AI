@@ -1,0 +1,140 @@
+/* ==============================================================================
+   VerityScout AI — Application Header Stylesheet
+   ==============================================================================
+   Governed by: Step 13 (Responsive Application Shell & Navigation)
+   Uses: Step 11 Design Tokens
+   ============================================================================== */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 var(--space-4);
+  background-color: var(--color-surface-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  width: 100%;
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Mobile navigation toggle button */
+.mobileToggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.mobileToggle:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.mobileToggle:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.toggleIcon {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* Brand Link and Identity */
+.brandLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-xs);
+}
+
+.brandLink:hover {
+  text-decoration: none;
+}
+
+.brandLink:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.brandLogo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.brandName {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-tight);
+  white-space: nowrap;
+}
+
+.brandAccent {
+  color: var(--color-accent-cyan-text);
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent-cyan-subtle);
+  border: 1px solid var(--color-accent-cyan-border);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent-cyan-text);
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--palette-emerald-400);
+}
+
+/* Responsive visibility */
+@media (max-width: 1023px) {
+  .mobileToggle {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .statusPill {
+    display: none;
+  }
+}

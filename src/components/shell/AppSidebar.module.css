@@ -1,0 +1,49 @@
+/* ==============================================================================
+   VerityScout AI — Desktop Sidebar Stylesheet
+   ==============================================================================
+   Governed by: Step 13 (Responsive Application Shell & Navigation)
+   Uses: Step 11 Design Tokens
+   ============================================================================== */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 260px;
+  min-width: 260px;
+  height: calc(100vh - 60px);
+  position: sticky;
+  top: 60px;
+  padding: var(--space-5) var(--space-4);
+  background-color: var(--color-surface-secondary);
+  border-right: 1px solid var(--color-border-subtle);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--palette-slate-700) transparent;
+}
+
+.sidebarFooter {
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.versionTag {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--palette-slate-400);
+}
+
+.phaseTag {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--palette-slate-500);
+}
+
+/* Hidden below 1024px desktop breakpoint */
+@media (max-width: 1023px) {
+  .sidebar {
+    display: none;
+  }
+}

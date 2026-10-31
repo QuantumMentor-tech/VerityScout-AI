@@ -1,7 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
+cd /d "%~dp0"
 
-title VerityScout AI — Management & Launch Console
+title VerityScout AI — Management ^& Launch Console
 
 echo ===============================================================================
 echo                           VERITYSCOUT AI
@@ -13,7 +14,7 @@ echo.
 where node >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Node.js is not found in PATH.
-    echo Please install Node.js LTS (v20+ recommended) from https://nodejs.org/
+    echo Please install Node.js LTS [v20+ recommended] from https://nodejs.org/
     echo.
     pause
     exit /b 1
@@ -34,7 +35,7 @@ if not exist "node_modules\" (
     echo Installing project dependencies...
     echo.
     call npm install
-    if %ERRORLEVEL% neq 0 (
+    if !ERRORLEVEL! neq 0 (
         echo [ERROR] npm install failed.
         pause
         exit /b 1
@@ -57,9 +58,9 @@ echo  [7] Start Local Services (Docker Compose - PostgreSQL ^& Redis)
 echo  [8] Stop Local Services (Docker Compose)
 echo  [9] Exit
 echo -------------------------------------------------------------------------------
+set "CHOICE=1"
 set /p "CHOICE=Enter choice (1-9) [Default: 1]: "
 
-if "%CHOICE%"=="" set CHOICE=1
 if "%CHOICE%"=="1" goto DEV
 if "%CHOICE%"=="2" goto VERIFY
 if "%CHOICE%"=="3" goto TEST
@@ -77,6 +78,8 @@ goto MENU
 :DEV
 echo.
 echo [INFO] Starting Next.js Development Server at http://localhost:3000 ...
+echo [INFO] Opening default browser at http://localhost:3000 ...
+start http://localhost:3000
 echo Press Ctrl+C in this terminal to stop the server.
 echo.
 call npm run dev
@@ -140,6 +143,7 @@ goto END_ACTION
 :START
 echo.
 echo [INFO] Starting production Next.js server at http://localhost:3000 ...
+start http://localhost:3000
 call npm run start
 goto MENU
 

@@ -1,0 +1,58 @@
+/* ==============================================================================
+   VerityScout AI — Textarea Stylesheet
+   ==============================================================================
+   Governed by: Step 14 (Reusable UI Components)
+   Uses: Step 11 Design Tokens
+   ============================================================================== */
+
+.textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  resize: vertical;
+  line-height: var(--line-height-normal);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.textarea::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.textarea:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+.textarea:focus-visible {
+  border-color: var(--color-border-focus);
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.invalid {
+  border-color: var(--palette-rose-400);
+}
+
+.invalid:focus-visible {
+  border-color: var(--palette-rose-400);
+  outline-color: var(--palette-rose-400);
+}
+
+.textarea:disabled {
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-subtle);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.textarea:read-only:not(:disabled) {
+  background-color: var(--color-surface-secondary);
+  cursor: default;
+}

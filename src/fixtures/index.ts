@@ -13,3 +13,4 @@ export * from './research-fixtures';
 export * from './history-fixtures';
 export * from './schedule-fixtures';
 export * from './provider-fixtures';
+export * from './evidence-fixtures';

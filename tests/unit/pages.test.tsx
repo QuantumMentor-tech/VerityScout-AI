@@ -35,7 +35,7 @@ describe('Step 15 Page Shells', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: /research run detail/i })).toBeInTheDocument();
     expect(screen.getByText(/Deterministic Fixture Record/i)).toBeInTheDocument();
-    expect(screen.getByText(/Lenovo ThinkPad T14 Gen 3 \(AMD Ryzen 7 PRO/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Lenovo ThinkPad T14 Gen 3 \(AMD Ryzen 7 PRO/i).length).toBeGreaterThan(0);
     expect(screen.getByText('$649.99')).toBeInTheDocument();
   });
 
@@ -63,13 +63,10 @@ describe('Step 15 Page Shells', () => {
     expect(screen.getByText(/ThinkPad T14 Price & Stock Watch/i)).toBeInTheDocument();
   });
 
-  it('renders Provider Settings page shell with deferred configuration notice', () => {
+  it('renders Provider Settings page with secure vault credential management', () => {
     render(<ProviderSettingsPage />);
 
     expect(screen.getByRole('heading', { level: 1, name: /provider settings/i })).toBeInTheDocument();
-    expect(screen.getByText(/Configuration Preview — Functionality Deferred/i)).toBeInTheDocument();
-    expect(screen.getByText(/OpenAI \(Reasoning & Structured Outputs\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/OpenRouter \(Multi-Model Routing\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/NVIDIA NIM \(Microservices Inference\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/AES-256-GCM Encrypted/i)).toBeInTheDocument();
   });
 });

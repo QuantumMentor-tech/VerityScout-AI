@@ -17,10 +17,13 @@
     "services:up": "docker compose up -d",
     "services:down": "docker compose down",
     "services:logs": "docker compose logs -f",
-    "services:status": "docker compose ps"
+    "services:status": "docker compose ps",
+    "db:migrate": "npx tsx src/server/persistence/migrations/run-migrations.ts migrate",
+    "db:status": "npx tsx src/server/persistence/migrations/run-migrations.ts status"
   },
   "dependencies": {
     "next": "^15.1.0",
+    "pg": "^8.23.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
@@ -33,6 +36,7 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^22.10.2",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
     "@vitejs/plugin-react": "^6.1.2",

@@ -295,3 +295,79 @@ All error responses (HTTP 4xx and 5xx) strictly follow this standard envelope:
   - Regex filename sanitization (`Content-Disposition: attachment; filename="report-2026-10-30.csv"`).
   - Absolute exclusion of API keys and private tokens.
 - **Response 200 OK:** File stream with appropriate MIME type.
+
+---
+
+### 2.8 AI Provider Settings & Credential Configuration (`/api/settings/providers`)
+
+Governed by **Step 26** (AI Provider Settings CRUD, Secure Credential UI, Connection Tests).
+
+#### `GET /api/settings/providers`
+- **Purpose:** List safe metadata for all supported AI providers (OpenAI, OpenRouter, NVIDIA NIM).
+- **Auth:** Authenticated Session Required (`requireAuthenticatedCaller`).
+- **Response 200 OK:**
+  ```json
+  {
+    "providers": [
+      {
+        "id": "openai",
+        "name": "OpenAI",
+        "description": "Industry-standard frontier models including GPT-4o.",
+        "category": "Primary AI Model",
+        "docsUrl": "https://platform.openai.com/api-keys",
+        "keyPlaceholder": "sk-proj-...",
+        "helpText": "Generate a secret key from your OpenAI platform dashboard.",
+        "isConfigured": true,
+        "isEnabled": true,
+        "credentialPreview": "sk-...4321",
+        "lastConnectionTestStatus": "SUCCESS",
+        "lastConnectionTestAt": "2026-11-02T08:00:00.000Z",
+        "selectedModelId": null,
+        "updatedAt": "2026-11-02T08:00:00.000Z"
+      }
+    ]
+  }
+  ```
+
+#### `POST /api/settings/providers`
+- **Purpose:** Save or replace provider API credential securely via AES-256-GCM vault encryption.
+- **Auth:** Authenticated Session Required.
+- **Request Body:**
+  ```json
+  {
+    "providerId": "openai",
+    "apiKey": "sk-proj-example1234567890",
+    "isEnabled": true,
+    "selectedModelId": null
+  }
+  ```
+- **Response 200 OK:** Sanitized `ProviderSettingsItemDTO` with `credentialPreview`. Plaintext key is never returned.
+
+#### `GET /api/settings/providers/{providerId}`
+- **Purpose:** Retrieve configuration metadata for a single supported provider.
+- **Auth:** Authenticated Session Required.
+
+#### `PATCH /api/settings/providers/{providerId}`
+- **Purpose:** Update non-secret metadata (`isEnabled`, `selectedModelId`).
+- **Auth:** Authenticated Session Required.
+
+#### `DELETE /api/settings/providers/{providerId}`
+- **Purpose:** Permanently remove provider credential ciphertext from vault and delete configuration record.
+- **Auth:** Authenticated Session Required.
+- **Response 200 OK:** `{ "success": true, "providerId": "openai" }`.
+
+#### `POST /api/settings/providers/{providerId}/test`
+- **Purpose:** User-initiated explicit connection probe to verify connectivity and API key validity.
+- **Auth:** Authenticated Session Required.
+- **Characteristics:** Strictly non-inference. Probes lightweight metadata endpoint (`/v1/models` or `/v1/auth/key`) with 5s timeout and manual redirect handling. Zero prompt tokens consumed.
+- **Response 200 OK:**
+  ```json
+  {
+    "success": true,
+    "code": "SUCCESS",
+    "message": "Connection and API key successfully verified with provider.",
+    "testedAt": "2026-11-02T08:05:00.000Z",
+    "durationMs": 142
+  }
+  ```
+

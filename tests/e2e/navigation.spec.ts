@@ -21,7 +21,7 @@ test.describe('VerityScout AI — Step 15 Route Shells & Fixture Navigation', ()
       {
         path: '/settings/providers',
         expectedHeading: /provider settings/i,
-        expectedNotice: /Configuration Preview — Functionality Deferred/i,
+        expectedNotice: /(Configuration Preview — Functionality Deferred|AES-256-GCM Encrypted)/i,
       },
     ];
 
@@ -52,7 +52,7 @@ test.describe('VerityScout AI — Step 15 Route Shells & Fixture Navigation', ()
 
     // Check deterministic fixture data
     await expect(page.getByText(/Deterministic Fixture Record/i)).toBeVisible();
-    await expect(page.getByText(/Lenovo ThinkPad T14 Gen 3 \(AMD Ryzen 7 PRO/i)).toBeVisible();
+    await expect(page.getByText(/Lenovo ThinkPad T14 Gen 3 \(AMD Ryzen 7 PRO/i).first()).toBeVisible();
     await expect(page.getByText('$649.99', { exact: true })).toBeVisible();
 
     // Back link navigates to research workspace

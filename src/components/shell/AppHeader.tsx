@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './AppHeader.module.css';
+import { AuthStatusIndicator } from '../auth/AuthStatusIndicator';
 
 export interface AppHeaderProps {
   readonly isMobileNavOpen: boolean;
@@ -73,7 +74,9 @@ export function AppHeader({
           <span className={styles.statusDot} aria-hidden="true" />
           <span>v0.1.0 • Engine Active</span>
         </div>
+        <AuthStatusIndicator />
       </div>
     </header>
   );
 }
+

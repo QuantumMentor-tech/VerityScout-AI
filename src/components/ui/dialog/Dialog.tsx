@@ -9,14 +9,14 @@ export interface DialogProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly title: string;
-  readonly description?: string;
+  readonly description?: string | undefined;
   readonly children: React.ReactNode;
   readonly footer?: React.ReactNode;
-  readonly size?: DialogSize;
-  readonly closeOnBackdropClick?: boolean;
-  readonly closeOnEscape?: boolean;
-  readonly triggerRef?: React.RefObject<HTMLElement | null>;
-  readonly id?: string;
+  readonly size?: DialogSize | undefined;
+  readonly closeOnBackdropClick?: boolean | undefined;
+  readonly closeOnEscape?: boolean | undefined;
+  readonly triggerRef?: React.RefObject<HTMLElement | null> | undefined;
+  readonly id?: string | undefined;
 }
 
 export function Dialog({

@@ -225,13 +225,18 @@ The project follows a structured 60-step roadmap across 12 phases:
   - `Step 10`: Application Module Skeleton, Local Services & Architecture Documentation (Modular skeleton, `compose.yaml`, developer scripts, and architecture docs).
   - `Step 11`: Design Tokens, Typography, Spacing, and Accessible Dark Color Palette (Centralized tokens, WCAG 2.2 AA contrast matrix, `DESIGN_TOKENS.md`).
   - `Step 12`: Dynamic Cyan-to-Violet Transition and Reduced-Motion Preference Control (Brand gradient keyframes, `ReduceMotionControl` component, `MOTION_AND_ACCESSIBILITY.md`).
-- [ ] **Phase 3: Core Application Shell & Design Foundations (Steps 13–20)**
+- [x] **Phase 3: Core Application Shell & Design Foundations (Steps 13–15)**
   - `Step 13`: Responsive Application Shell, Navigation, Header, and Sidebar (`AppShell`, `AppHeader`, `AppSidebar`, `MobileNavDrawer`, `APP_SHELL_AND_NAVIGATION.md`).
   - `Step 14`: Reusable Design-System Components (Buttons, Cards, Dialogs, Tooltips, Form Controls, Badges, Alerts, States, `COMPONENTS.md`).
   - `Step 15`: Application Page and Route Shells with Fixture Data (`PAGE_SHELLS_AND_FIXTURES.md`, `ROUTE_MAP.md`, 5 route shells, deterministic fixtures).
+- [x] **Phase 4: User Research Experience & Traceability UI (Steps 16–20)**
   - `Step 16`: Research Query Composer & Input Experience (`QUERY_COMPOSER.md`, `QueryComposer`, deterministic local validation, 1,000 char boundary).
-  - `Step 17`: Multi-Dimensional Research Constraints Editor *(Next)*.
-- [ ] **Phase 4: Deterministic Constraint & Verification Engine (Steps 21–28)**
+  - `Step 17`: Multi-Dimensional Research Constraints Editor.
+  - `Step 18`: Research Progress Indicator & Cancellation UI.
+  - `Step 19`: Candidate Results Filtering, Comparison & Near-Match Cards.
+  - `Step 20`: Source Explorer, Evidence Drawer, Source Provenance, and Claim-to-Source Traceability (`SOURCE_EXPLORER_AND_EVIDENCE_DRAWER.md`, `SourceExplorer`, `EvidenceDrawer`, `CandidateEvidenceView`, safe URL validation boundary).
+- [ ] **Phase 5: Data Persistence & PostgreSQL Schema Architecture (Steps 21–24)**
+  - `Step 21`: PostgreSQL Database Schema, Supabase Migrations, and Relational Data Models *(Next)*.
 - [ ] **Phase 5: AI Provider Routing & Analysis Engine (Steps 29–35)**
 - [ ] **Phase 6: Persistence, Queue & Background Worker Architecture (Steps 36–42)**
 - [ ] **Phase 7: User Experience & Research Interface (Steps 43–48)**

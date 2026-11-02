@@ -1,0 +1,119 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 120px);
+  padding: var(--space-6) var(--space-4);
+}
+
+.authCard {
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.headerBadge {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-cyan-text);
+  background-color: var(--color-accent-cyan-subtle);
+  border: 1px solid var(--color-accent-cyan-border);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.alertWrapper {
+  margin-bottom: var(--space-4);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper input {
+  padding-right: 60px;
+}
+
+.togglePasswordButton {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+}
+
+.togglePasswordButton:hover {
+  color: var(--color-text-primary);
+}
+
+.togglePasswordButton:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.actions {
+  margin-top: var(--space-3);
+}
+
+.submitButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.footerLinks {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.link {
+  color: var(--color-accent-cyan-text);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 120px);
+}

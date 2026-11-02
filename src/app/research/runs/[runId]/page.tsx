@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import styles from './page.module.css';
-import { Alert, Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui';
-import { getDemoRunById } from '@/fixtures';
+import { Alert, Badge } from '@/components/ui';
+import { getDemoRunById, getSourcesForRun, SAMPLE_EVIDENCE_FIXTURE } from '@/fixtures';
+import { CandidateEvidenceView } from '@/features/evidence';
 
 interface RunDetailPageProps {
   readonly params: Promise<{
@@ -35,6 +36,9 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
     notFound();
   }
 
+  const sources = getSourcesForRun(run.id);
+  const evidenceRecords = SAMPLE_EVIDENCE_FIXTURE.filter((ev) => ev.runId === run.id);
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -63,48 +67,11 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
         <div><strong>Completed At:</strong> {run.completedAt}</div>
       </div>
 
-      <section>
-        <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-4)', color: 'var(--color-text-primary)' }}>
-          Verified Candidate Results ({run.candidates.length})
-        </h2>
-
-        <div className={styles.candidatesList}>
-          {run.candidates.map((cand) => (
-            <Card key={cand.id} variant="default">
-              <CardHeader>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
-                  <div>
-                    <CardTitle as="h3">{cand.name}</CardTitle>
-                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                      Retailer: {cand.retailer}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-1)' }}>
-                    <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-accent-cyan-text)' }}>
-                      {cand.price}
-                    </span>
-                    <Badge variant={cand.tier === 'Strong Match' ? 'success' : 'warning'} size="sm">
-                      {cand.tier}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className={styles.attributeGrid}>
-                  {cand.verifiedAttributes.map((attr, idx) => (
-                    <div key={idx} className={styles.attributeItem}>
-                      <span className={styles.attributeKey}>{attr.key}</span>
-                      <span className={styles.attributeValue}>
-                        {attr.value} {attr.matchesConstraint ? '✓' : '✗'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+      <CandidateEvidenceView
+        candidates={run.candidates}
+        sources={sources}
+        evidenceRecords={evidenceRecords}
+      />
     </div>
   );
 }

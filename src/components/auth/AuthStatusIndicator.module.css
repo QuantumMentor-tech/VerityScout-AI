@@ -1,0 +1,95 @@
+.userContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.userBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px 10px 2px 4px;
+  background-color: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  max-width: 180px;
+}
+
+.avatarIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent-cyan-subtle);
+  color: var(--color-accent-cyan-text);
+  font-weight: var(--font-weight-bold);
+  font-size: 11px;
+}
+
+.userName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signOutButton {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.signOutButton:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.signOutButton:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.guestContainer {
+  display: flex;
+  align-items: center;
+}
+
+.signInLink {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
+}
+
+.signInLink:hover {
+  background-color: var(--color-accent-cyan-subtle);
+  border-color: var(--color-accent-cyan-border);
+  color: var(--color-accent-cyan-text);
+  text-decoration: none;
+}
+
+.signInLink:focus-visible {
+  outline: var(--border-width-md) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.loadingPlaceholder {
+  width: 60px;
+  height: 24px;
+}

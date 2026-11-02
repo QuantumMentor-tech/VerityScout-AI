@@ -156,6 +156,33 @@ export interface ResearchTask {
 }
 ```
 
+### 3.1.1 ResearchPlan & NormalizedResearchIntent (Step 31)
+Represents the validated, provider-independent output of research query parsing, constraint extraction, and multi-engine query formulation.
+
+```typescript
+export interface ResearchPlan {
+  id: string;                         // UUIDv4 plan identifier
+  status: 'READY' | 'NEEDS_CLARIFICATION' | 'INVALID';
+  intent: NormalizedResearchIntent;
+  primaryQuery: string;
+  searchQueries: SearchQueryVariant[]; // 2 to 5 bounded queries
+  ambiguities: PlanAmbiguity[];
+  warnings: PlanWarning[];
+  createdAt: string;                  // ISO 8601 UTC
+  plannerVersion: string;             // "1.0.0"
+}
+
+export interface NormalizedResearchIntent {
+  originalQuery: string;              // Exact raw user text
+  normalizedQuery: string;            // NFKC, whitespace-collapsed
+  taskType: TaskType;                 // PRODUCT_RESEARCH, SPEC_VERIFICATION, etc.
+  targetEntity: string;               // Clean extracted product or topic
+  extractedCategory?: string;
+  constraints: NormalizedConstraint[];
+  provenance: 'EXPLICIT_USER' | 'DETERMINISTIC_EXTRACTION' | 'AI_INFERRED';
+}
+```
+
 ### 3.2 ResearchRun
 Represents an individual execution of a research task.
 

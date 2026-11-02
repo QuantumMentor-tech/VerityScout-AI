@@ -22,6 +22,29 @@ export const ServerEnvSchema = z.object({
   LOG_LEVEL: LogLevelSchema.default('info'),
   APP_URL: z.string().url().default('http://localhost:3000'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+
+  // Database Connection & Pooling (Step 22)
+  DATABASE_URL: z.string().optional(),
+  POSTGRES_HOST: z.string().default('127.0.0.1'),
+  POSTGRES_PORT: z.coerce.number().int().min(1).max(65535).default(5432),
+  POSTGRES_USER: z.string().default('verityscout'),
+  POSTGRES_PASSWORD: z.string().default('verityscout_dev_password'),
+  POSTGRES_DB: z.string().default('verityscout_dev'),
+  POSTGRES_SSL: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((val) => val === 'true'),
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
+  DATABASE_POOL_IDLE_TIMEOUT_MS: z.coerce.number().int().min(1000).default(30000),
+  DATABASE_POOL_CONNECTION_TIMEOUT_MS: z.coerce.number().int().min(1000).default(5000),
+
+  // Provider Credential Vault Encryption (Step 25 / SEC-001, SEC-002, ADR-010)
+  VAULT_MASTER_KEY: z
+    .string()
+    .regex(/^[0-9a-fA-F]{64}$/, 'Must be a 64-character hex string (256-bit key)')
+    .default('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'),
+  VAULT_KEYRING: z.string().optional(),
+  VAULT_ACTIVE_KEY_VERSION: z.coerce.number().int().min(1).default(1),
 });
 
 export type ServerEnv = z.infer<typeof ServerEnvSchema>;

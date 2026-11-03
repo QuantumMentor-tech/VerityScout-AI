@@ -121,3 +121,4 @@ export interface PlanWarning {
 - **Step 34 (Web Extraction):** Uses `intent.targetEntity` and `constraints` for focused content extraction.
 - **Step 38 (Constraint Verification):** Validates evidence claims against `intent.constraints` (operator, value, unit).
 - **Step 39 (Match Classification):** Evaluates candidate results against required vs excluded constraints.
+

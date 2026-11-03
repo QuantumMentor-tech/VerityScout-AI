@@ -191,6 +191,25 @@ export interface SourceDocumentRow {
 }
 
 // -----------------------------------------------------------------------------
+// 4.1 Source Discoveries Row
+// -----------------------------------------------------------------------------
+export interface SourceDiscoveryRow {
+  readonly id: string;
+  readonly source_document_id: string;
+  readonly run_id: string;
+  readonly user_id: string;
+  readonly query_variant_id: string | null;
+  readonly query_text: string;
+  readonly discovery_provider: string;
+  readonly provider_result_id: string | null;
+  readonly original_url: string;
+  readonly title: string;
+  readonly snippet: string | null;
+  readonly relevance_score: number | null;
+  readonly discovered_at: string;
+}
+
+// -----------------------------------------------------------------------------
 // 5. Candidate Results Row
 // -----------------------------------------------------------------------------
 export interface CandidateResultRow {

@@ -179,6 +179,35 @@ CREATE INDEX IF NOT EXISTS idx_source_documents_run_id ON source_documents(run_i
 CREATE INDEX IF NOT EXISTS idx_source_documents_user_id ON source_documents(user_id);
 CREATE INDEX IF NOT EXISTS idx_source_documents_domain ON source_documents(domain);
 CREATE INDEX IF NOT EXISTS idx_source_documents_canonical_url ON source_documents(canonical_url);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_source_documents_run_canonical ON source_documents(run_id, canonical_url);
+
+-- ==============================================================================
+-- 4.1 SOURCE DISCOVERIES (AUDIT & PROVENANCE)
+-- ==============================================================================
+-- Traceability: DATA_CONTRACTS.md Section 3.3, UR-006, AC-006, Step 35
+-- Retains distinct query variant, provider, score, snippet, and timestamp
+-- for every search discovery event linked to a canonical source document.
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS source_discoveries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    source_document_id UUID NOT NULL REFERENCES source_documents(id) ON DELETE CASCADE,
+    run_id UUID NOT NULL REFERENCES research_runs(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
+    query_variant_id VARCHAR(100) NULL,
+    query_text TEXT NOT NULL,
+    discovery_provider VARCHAR(50) NOT NULL,
+    provider_result_id VARCHAR(255) NULL,
+    original_url TEXT NOT NULL,
+    title TEXT NOT NULL,
+    snippet TEXT NULL,
+    relevance_score NUMERIC(5, 4) NULL,
+    discovered_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_source_discoveries_source_id ON source_discoveries(source_document_id);
+CREATE INDEX IF NOT EXISTS idx_source_discoveries_run_id ON source_discoveries(run_id);
+CREATE INDEX IF NOT EXISTS idx_source_discoveries_user_id ON source_discoveries(user_id);
+CREATE INDEX IF NOT EXISTS idx_source_discoveries_query_variant ON source_discoveries(query_variant_id);
 
 -- ==============================================================================
 -- 5. CANDIDATE RESULTS
@@ -454,6 +483,7 @@ ALTER TABLE research_tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE research_schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE research_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE source_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE source_discoveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE candidate_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE evidence_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE candidate_evidence_links ENABLE ROW LEVEL SECURITY;

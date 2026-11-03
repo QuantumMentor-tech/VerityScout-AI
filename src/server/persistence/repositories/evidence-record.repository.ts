@@ -12,13 +12,23 @@ import {
 
 export interface CreateEvidenceRecordInput {
   id?: string;
-  source_document_id: string;
+  source_id?: string;
+  source_document_id?: string;
   run_id: string;
   user_id: string;
-  claim_text: string;
-  verbatim_excerpt: string;
+  candidate_id?: string | null;
+  claim_key?: string;
+  claim_text?: string;
+  extracted_raw_value?: string;
+  normalized_value?: string;
+  unit_or_currency?: string | null;
+  verbatim_quote?: string;
+  verbatim_excerpt?: string;
   verification_state: VerificationState;
-  confidence_score?: string;
+  conflict_details?: string | null;
+  extraction_method?: 'LLM_STRUCTURED' | 'REGEX_DETERMINISTIC' | 'META_TAG' | 'DOM_SELECTOR';
+  location_in_document?: string | null;
+  confidence_score?: string | number | null;
   char_offset_start?: number | null;
   char_offset_end?: number | null;
   evaluation_details?: Record<string, unknown>;
@@ -135,15 +145,22 @@ export class EvidenceRecordRepository {
       )
       RETURNING *
     `;
+    const sourceId = input.source_id ?? input.source_document_id ?? '';
+    const claimKey = input.claim_key ?? input.claim_text ?? '';
+    const verbatim = input.verbatim_quote ?? input.verbatim_excerpt ?? '';
+    const confidence = input.confidence_score !== undefined && input.confidence_score !== null
+      ? String(input.confidence_score)
+      : '1.0000';
+
     const params = [
       input.id ?? null,
-      input.source_document_id,
+      sourceId,
       input.run_id,
       input.user_id,
-      input.claim_text,
-      input.verbatim_excerpt,
+      claimKey,
+      verbatim,
       input.verification_state,
-      input.confidence_score ?? '1.000',
+      confidence,
       input.char_offset_start ?? null,
       input.char_offset_end ?? null,
       JSON.stringify(input.evaluation_details ?? {}),
@@ -155,5 +172,20 @@ export class EvidenceRecordRepository {
       throw new Error('Failed to create evidence record: database returned no rows');
     }
     return row;
+  }
+
+  /**
+   * Concurrently creates multiple evidence records within an optional transaction.
+   */
+  async batchCreate(
+    inputs: readonly CreateEvidenceRecordInput[],
+    tx?: TransactionContext | PoolClient
+  ): Promise<EvidenceRecordRow[]> {
+    const results: EvidenceRecordRow[] = [];
+    for (const input of inputs) {
+      const record = await this.create(input, tx);
+      results.push(record);
+    }
+    return results;
   }
 }

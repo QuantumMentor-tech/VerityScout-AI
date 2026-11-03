@@ -118,3 +118,4 @@ While the core planner is 100% deterministic, [`ResearchPlannerService`](file://
 2. **Zero Code Execution:** No `eval` or dynamic code generation is used.
 3. **Zero Secret Leakage:** Prompts, plans, and warnings contain no credentials or tokens.
 4. **Execution Boundary:** The planner strictly produces data transfer objects. It does not initiate external HTTP requests, web search API calls, or web scrapers.
+

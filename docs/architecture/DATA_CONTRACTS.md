@@ -243,6 +243,27 @@ export interface SourceDocument {
 }
 ```
 
+### 3.3.1 SourceDiscoveryRecord
+Represents a discrete search discovery event linking a query variant lead to a canonical source document (Step 35).
+
+```typescript
+export interface SourceDiscoveryRecord {
+  id: string;                         // UUIDv4 primary key
+  sourceDocumentId: string;           // Foreign key -> SourceDocument.id (ON DELETE CASCADE)
+  runId: string;                      // Foreign key -> ResearchRun.id (ON DELETE CASCADE)
+  userId: string;                     // Tenant owner
+  queryVariantId?: string | null;     // Query variant ID (e.g. 'variant-primary')
+  queryText: string;                  // Verbatim query dispatched to provider
+  discoveryProvider: string;          // "tavily" | "exa" | "mock_search"
+  providerResultId?: string | null;   // External provider candidate ID
+  originalUrl: string;                // Raw URL with tracking parameters and fragments
+  title: string;                      // Discovered title
+  snippet?: string | null;            // Discovered snippet
+  relevanceScore?: number | null;     // Provider relevance score
+  discoveredAt: string;               // ISO 8601 UTC
+}
+```
+
 ### 3.4 EvidenceRecord
 Represents a verified or refuted factual claim grounded in source text.
 

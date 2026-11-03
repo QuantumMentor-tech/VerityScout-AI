@@ -14,15 +14,18 @@ export interface CreateSourceDocumentInput {
   id?: string;
   run_id: string;
   user_id: string;
-  url: string;
+  url?: string;
+  original_url?: string;
   canonical_url?: string | null;
   domain: string;
   title?: string | null;
+  discovery_provider?: string;
   publisher?: string | null;
   published_at?: Date | null;
   access_state?: SourceAccessState;
   extraction_state?: ExtractionState;
   http_status_code?: number | null;
+  content_hash?: string | null;
   extracted_text_excerpt?: string | null;
   metadata?: Record<string, unknown>;
 }
@@ -41,6 +44,25 @@ export class SourceDocumentRepository {
       ? 'SELECT * FROM source_documents WHERE id = $1 AND user_id = $2'
       : 'SELECT * FROM source_documents WHERE id = $1';
     const params = userId ? [id, userId] : [id];
+    const result = await executeQuery<SourceDocumentRow>(executor, sql, params);
+    return result.rows[0] ?? null;
+  }
+
+  /**
+   * Retrieves a source document by its canonical URL within a specific research run,
+   * with optional owner isolation.
+   */
+  async findByCanonicalUrl(
+    runId: string,
+    canonicalUrl: string,
+    userId?: string,
+    tx?: TransactionContext | PoolClient
+  ): Promise<SourceDocumentRow | null> {
+    const executor = getExecutor(tx);
+    const sql = userId
+      ? 'SELECT * FROM source_documents WHERE run_id = $1 AND canonical_url = $2 AND user_id = $3'
+      : 'SELECT * FROM source_documents WHERE run_id = $1 AND canonical_url = $2';
+    const params = userId ? [runId, canonicalUrl, userId] : [runId, canonicalUrl];
     const result = await executeQuery<SourceDocumentRow>(executor, sql, params);
     return result.rows[0] ?? null;
   }
@@ -171,5 +193,39 @@ export class SourceDocumentRepository {
       httpStatusCode ?? null,
     ]);
     return result.rows[0] ?? null;
+  }
+
+  /**
+   * Concurrency-safe atomic insert-or-resolve method for canonical source documents.
+   * If a source document with the same (run_id, canonical_url) already exists within the run,
+   * returns the existing row with isNew: false.
+   */
+  async upsertOrResolve(
+    input: CreateSourceDocumentInput,
+    tx?: TransactionContext | PoolClient
+  ): Promise<{ document: SourceDocumentRow; isNew: boolean }> {
+    const canonicalUrl = input.canonical_url ?? input.original_url ?? input.url ?? '';
+    const existing = await this.findByCanonicalUrl(input.run_id, canonicalUrl, input.user_id, tx);
+    if (existing) {
+      return { document: existing, isNew: false };
+    }
+
+    try {
+      const created = await this.create(input, tx);
+      return { document: created, isNew: true };
+    } catch (err: unknown) {
+      // Concurrency race defense: if another concurrent transaction inserted the same (run_id, canonical_url)
+      const isUniqueViolation =
+        (typeof err === 'object' && err !== null && 'code' in err && (err as { code: string }).code === '23505') ||
+        (err instanceof Error && err.message.includes('uq_source_documents_run_canonical'));
+
+      if (isUniqueViolation) {
+        const resolved = await this.findByCanonicalUrl(input.run_id, canonicalUrl, input.user_id, tx);
+        if (resolved) {
+          return { document: resolved, isNew: false };
+        }
+      }
+      throw err;
+    }
   }
 }

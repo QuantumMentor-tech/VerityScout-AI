@@ -22,6 +22,7 @@
     "db:status": "npx tsx src/server/persistence/migrations/run-migrations.ts status"
   },
   "dependencies": {
+    "jsdom": "^30.1.3",
     "next": "^15.1.0",
     "pg": "^8.23.1",
     "react": "^19.0.0",
@@ -35,6 +36,7 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^22.10.2",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.0.2",
@@ -42,7 +44,6 @@
     "@vitejs/plugin-react": "^6.1.2",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.0",
-    "jsdom": "^30.1.3",
     "typescript": "^5.7.2",
     "vitest": "^5.0.5"
   }

@@ -4,6 +4,7 @@ export * from './base.repository';
 export * from './research-task.repository';
 export * from './research-run.repository';
 export * from './source-document.repository';
+export * from './source-discovery.repository';
 export * from './evidence-record.repository';
 export * from './candidate-result.repository';
 export * from './provider-config.repository';

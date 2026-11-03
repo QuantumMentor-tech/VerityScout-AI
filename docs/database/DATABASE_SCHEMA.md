@@ -144,6 +144,35 @@ Represents discovered web page metadata, access states, and bounded raw text exc
   - `idx_source_documents_user_id` on `(user_id)`
   - `idx_source_documents_domain` on `(domain)`
   - `idx_source_documents_canonical_url` on `(canonical_url)`
+  - `uq_source_documents_run_canonical` UNIQUE on `(run_id, canonical_url)` (Step 35 canonical deduplication)
+
+---
+
+### 2.4.1 `source_discoveries`
+Stores discrete search discovery events linking query variant leads to canonical source documents.
+Traceability: `DATA_CONTRACTS.md Section 3.3.1`, `UR-006`, `AC-006`, Step 35.
+
+| Column | Type | Nullable | Default | Description & Constraint |
+|---|---|---|---|---|
+| `id` | `UUID` | No | `gen_random_uuid()` | Primary key (UUIDv4) |
+| `source_document_id` | `UUID` | No | — | FK -> `source_documents(id)` `ON DELETE CASCADE` |
+| `run_id` | `UUID` | No | — | FK -> `research_runs(id)` `ON DELETE CASCADE` |
+| `user_id` | `UUID` | No | — | Owner identifier |
+| `query_variant_id` | `VARCHAR(100)` | Yes | `NULL` | ID of query variant from research plan |
+| `query_text` | `TEXT` | No | — | Verbatim query string dispatched |
+| `discovery_provider` | `VARCHAR(50)` | No | — | Search engine identifier (`tavily`, `exa`, etc.) |
+| `provider_result_id` | `VARCHAR(255)` | Yes | `NULL` | Upstream provider-specific result ID |
+| `original_url` | `TEXT` | No | — | Raw URL discovered (including tracking params) |
+| `title` | `TEXT` | No | — | Title reported at discovery |
+| `snippet` | `TEXT` | Yes | `NULL` | Search snippet excerpt |
+| `relevance_score` | `NUMERIC(5, 4)` | Yes | `NULL` | Provider relevance score |
+| `discovered_at` | `TIMESTAMPTZ` | No | `NOW()` | Timestamp of discovery event |
+
+- **Indexes:**
+  - `idx_source_discoveries_source_id` on `(source_document_id)`
+  - `idx_source_discoveries_run_id` on `(run_id)`
+  - `idx_source_discoveries_user_id` on `(user_id)`
+  - `idx_source_discoveries_query_variant` on `(query_variant_id)`
 
 ---
 

@@ -200,6 +200,41 @@ export class CandidateResultRepository {
 
       return candidate;
     }, client);
+  }
 
+  /**
+   * Updates the deterministic constraint evaluation JSON on an existing candidate result,
+   * scoped to tenant ownership.
+   */
+  async updateConstraintEvaluation(
+    candidateId: string,
+    evaluation: {
+      passedConstraints: readonly string[];
+      failedConstraints: readonly string[];
+      mismatchReason?: string | undefined;
+    },
+    userId?: string,
+    tx?: TransactionContext | PoolClient
+  ): Promise<CandidateResultRow | null> {
+    const executor = getExecutor(tx);
+    const sql = userId
+      ? `
+        UPDATE candidate_results
+        SET constraint_evaluation = $1
+        WHERE id = $2 AND user_id = $3
+        RETURNING *
+      `
+      : `
+        UPDATE candidate_results
+        SET constraint_evaluation = $1
+        WHERE id = $2
+        RETURNING *
+      `;
+    const params = userId
+      ? [JSON.stringify(evaluation), candidateId, userId]
+      : [JSON.stringify(evaluation), candidateId];
+
+    const result = await executeQuery<CandidateResultRow>(executor, sql, params);
+    return result.rows[0] ?? null;
   }
 }

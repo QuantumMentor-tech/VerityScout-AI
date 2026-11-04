@@ -11,22 +11,22 @@ import {
 } from './base.repository';
 
 export interface CreateResearchTaskInput {
-  id?: string;
+  id?: string | undefined;
   user_id: string;
   title: string;
   original_query: string;
   task_type: TaskType;
-  constraints?: Record<string, unknown>;
-  limits?: Record<string, unknown>;
-  model_policy?: Record<string, unknown>;
+  constraints?: Record<string, unknown> | undefined;
+  limits?: Record<string, unknown> | undefined;
+  model_policy?: Record<string, unknown> | undefined;
 }
 
 export interface UpdateResearchTaskInput {
-  title?: string;
-  constraints?: Record<string, unknown>;
-  limits?: Record<string, unknown>;
-  model_policy?: Record<string, unknown>;
-  is_archived?: boolean;
+  title?: string | undefined;
+  constraints?: Record<string, unknown> | undefined;
+  limits?: Record<string, unknown> | undefined;
+  model_policy?: Record<string, unknown> | undefined;
+  is_archived?: boolean | undefined;
 }
 
 export class ResearchTaskRepository {

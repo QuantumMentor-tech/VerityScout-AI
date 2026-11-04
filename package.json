@@ -19,7 +19,8 @@
     "services:logs": "docker compose logs -f",
     "services:status": "docker compose ps",
     "db:migrate": "npx tsx src/server/persistence/migrations/run-migrations.ts migrate",
-    "db:status": "npx tsx src/server/persistence/migrations/run-migrations.ts status"
+    "db:status": "npx tsx src/server/persistence/migrations/run-migrations.ts status",
+    "worker": "npx tsx src/server/worker/worker-entry.ts"
   },
   "dependencies": {
     "jsdom": "^30.1.3",

@@ -17,6 +17,7 @@ export interface CreateResearchRunInput {
   schedule_id?: string | null;
   status?: RunStatus;
   current_stage?: RunStage;
+  idempotency_key?: string;
 }
 
 export interface UpdateRunLifecycleInput {
@@ -26,6 +27,7 @@ export interface UpdateRunLifecycleInput {
   progress_percent?: number;
   total_cost_usd?: string;
   execution_duration_ms?: number;
+  synthesis?: Record<string, unknown> | null;
 }
 
 export class ResearchRunRepository {
@@ -141,9 +143,9 @@ export class ResearchRunRepository {
     const executor = getExecutor(tx);
     const sql = `
       INSERT INTO research_runs (
-        id, task_id, user_id, schedule_id, status, current_stage
+        id, task_id, user_id, schedule_id, status, current_stage, idempotency_key
       ) VALUES (
-        COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6
+        COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6, COALESCE($7, gen_random_uuid()::text)
       )
       RETURNING *
     `;
@@ -154,6 +156,7 @@ export class ResearchRunRepository {
       input.schedule_id ?? null,
       input.status ?? RunStatus.QUEUED,
       input.current_stage ?? RunStage.INITIATED,
+      input.idempotency_key ?? null,
     ];
 
     const result = await executeQuery<ResearchRunRow>(executor, sql, params);
@@ -209,6 +212,10 @@ export class ResearchRunRepository {
     if (updates?.execution_duration_ms !== undefined) {
       setClauses.push(`execution_duration_ms = $${paramIndex++}`);
       params.push(updates.execution_duration_ms);
+    }
+    if (updates?.synthesis !== undefined) {
+      setClauses.push(`synthesis = $${paramIndex++}`);
+      params.push(updates.synthesis ? JSON.stringify(updates.synthesis) : null);
     }
 
     setClauses.push('updated_at = NOW()');

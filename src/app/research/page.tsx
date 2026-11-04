@@ -3,7 +3,7 @@ import Link from 'next/link';
 import styles from './page.module.css';
 import { Alert, Card, CardHeader, CardTitle, CardContent, CardFooter, Badge, Button } from '@/components/ui';
 import { DEMO_RUNS } from '@/fixtures';
-import { QueryComposer } from '@/features/research';
+import { ResearchWorkspaceClient } from '@/features/research';
 
 export const metadata: Metadata = {
   title: 'Research Workspace — VerityScout AI',
@@ -33,7 +33,7 @@ export default function ResearchPage(): React.JSX.Element {
 
       <div className={styles.workspaceGrid}>
         <div className={styles.composerColumn}>
-          <QueryComposer />
+          <ResearchWorkspaceClient />
         </div>
 
         <div className={styles.sampleRunCard}>

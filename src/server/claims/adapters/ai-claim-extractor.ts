@@ -14,6 +14,10 @@ import {
 import { getDefaultProviderRegistry } from '@/server/providers/registry';
 import { ProviderCredentialService } from '@/server/services/provider-credential.service';
 import type { AiProviderId } from '@/server/providers/contracts/provider-id';
+import {
+  type ModelRouterService,
+  getDefaultModelRouterService,
+} from '@/server/models/router';
 import { VerificationState } from '@/server/persistence/types';
 import { logger } from '@/lib/logging/logger';
 
@@ -26,14 +30,20 @@ export interface AiExtractionOptions {
   readonly modelId?: string | undefined;
   readonly targetAttributes?: readonly string[] | undefined;
   readonly explicitApiKey?: string | undefined;
+  readonly useAutoPick?: boolean | undefined;
   readonly signal?: AbortSignal | undefined;
 }
 
 export class AiClaimExtractor {
   private readonly credentialService: ProviderCredentialService;
+  private readonly routerService?: ModelRouterService | undefined;
 
-  constructor(credentialService?: ProviderCredentialService) {
+  constructor(
+    credentialService?: ProviderCredentialService,
+    routerService?: ModelRouterService
+  ) {
     this.credentialService = credentialService ?? new ProviderCredentialService();
+    this.routerService = routerService;
   }
 
   /**
@@ -50,8 +60,32 @@ export class AiClaimExtractor {
       providerId = 'openai',
       targetAttributes,
       explicitApiKey,
+      useAutoPick,
       signal,
     } = options;
+
+    let targetProviderId: AiProviderId = providerId;
+    let targetModelId = options.modelId;
+
+    if (useAutoPick) {
+      const router = this.routerService ?? getDefaultModelRouterService();
+      const decision = await router.route({
+        userId,
+        operationType: 'claim_extraction',
+        routingMode: 'AUTO_PICK',
+        allowFallback: true,
+        correlationId: `claim-extraction-${runId}`,
+      });
+
+      if (decision.status === 'SUCCESS' && decision.selectedModel) {
+        targetProviderId = decision.selectedModel.providerId;
+        targetModelId = decision.selectedModel.nativeModelId;
+      } else {
+        throw new Error(
+          `Auto-Pick model routing failed for claim extraction: ${decision.explanation}`
+        );
+      }
+    }
 
     const sourceText = document.markdownContent || document.textExcerpt || '';
     if (!sourceText.trim()) {
@@ -61,21 +95,21 @@ export class AiClaimExtractor {
     // 1. Resolve Provider and Credential
     let apiKey = explicitApiKey;
     if (!apiKey) {
-      apiKey = (await this.credentialService.getDecryptedCredential(userId, providerId)) ?? undefined;
+      apiKey = (await this.credentialService.getDecryptedCredential(userId, targetProviderId)) ?? undefined;
     }
 
     if (!apiKey) {
-      throw new Error(`No credentials configured for AI provider "${providerId}".`);
+      throw new Error(`No credentials configured for AI provider "${targetProviderId}".`);
     }
 
     const registry = getDefaultProviderRegistry();
-    const adapter = registry.getAdapter(providerId);
+    const adapter = registry.getAdapter(targetProviderId);
     if (!adapter) {
-      throw new Error(`AI Provider adapter "${providerId}" is not registered.`);
+      throw new Error(`AI Provider adapter "${targetProviderId}" is not registered.`);
     }
 
     // 2. Select default model if unprovided
-    const model = options.modelId || (providerId === 'openai' ? 'gpt-4o-mini' : 'meta/llama-3.1-70b-instruct');
+    const model = targetModelId || (targetProviderId === 'openai' ? 'gpt-4o-mini' : 'meta/llama-3.1-70b-instruct');
 
     // 3. Build Prompt with Untrusted Document Enclosure
     const userPrompt = buildClaimExtractionUserPrompt(document.title, sourceText, targetAttributes);

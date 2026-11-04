@@ -38,6 +38,13 @@ export enum RunStage {
   FINALIZING = 'FINALIZING',
 }
 
+export enum JobStatus {
+  QUEUED = 'QUEUED',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
 export enum SourceAccessState {
   ACCESSIBLE = 'ACCESSIBLE',
   BLOCKED_BOT_CHALLENGE = 'BLOCKED_BOT_CHALLENGE',
@@ -165,6 +172,7 @@ export interface ResearchRunRow {
   readonly selected_model: string | null;
   readonly error_message: string | null;
   readonly cancellation_reason: string | null;
+  readonly synthesis?: Record<string, unknown> | null;
   readonly started_at: string;
   readonly completed_at: string | null;
 }
@@ -362,5 +370,24 @@ export interface AuthSessionRow {
   readonly last_accessed_at: string;
   readonly user_agent: string | null;
   readonly ip_address: string | null;
+}
+
+// -----------------------------------------------------------------------------
+// 14. Research Job Queue Row (Step 43)
+// -----------------------------------------------------------------------------
+export interface ResearchJobQueueRow {
+  readonly id: string; // UUID
+  readonly run_id: string; // UUID
+  readonly task_id: string; // UUID
+  readonly user_id: string; // UUID
+  readonly status: JobStatus;
+  readonly priority: number;
+  readonly attempts: number;
+  readonly max_attempts: number;
+  readonly claimed_by: string | null;
+  readonly claimed_at: string | null;
+  readonly payload: Record<string, unknown>;
+  readonly created_at: string;
+  readonly updated_at: string;
 }
 

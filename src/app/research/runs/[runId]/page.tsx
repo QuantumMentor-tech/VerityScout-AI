@@ -5,7 +5,8 @@ import styles from './page.module.css';
 import { Alert, Badge, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { getDemoRunById, getSourcesForRun, SAMPLE_EVIDENCE_FIXTURE } from '@/fixtures';
 import { CandidateEvidenceView } from '@/features/evidence';
-import { ResearchRunRepository, ResearchTaskRepository, CandidateResultRepository, SourceDocumentRepository, EvidenceRecordRepository } from '@/server/persistence/repositories';
+import { RunProgressTracker } from '@/features/research';
+import { ResearchRunRepository, ResearchTaskRepository, CandidateResultRepository, SourceDocumentRepository, EvidenceRecordRepository, ProgressEventRepository, ModelUsageRepository } from '@/server/persistence/repositories';
 import { RunStatus } from '@/server/persistence/types';
 
 interface RunDetailPageProps {
@@ -95,6 +96,8 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
   let candidates: import('@/server/persistence/types').CandidateResultRow[] = [];
   let sources: import('@/server/persistence/types').SourceDocumentRow[] = [];
   let evidence: import('@/server/persistence/types').EvidenceRecordRow[] = [];
+  let progressEvents: import('@/server/persistence/types').ResearchProgressEventRow[] = [];
+  let usage: Awaited<ReturnType<ModelUsageRepository['getRunUsageSummary']>> | null = null;
 
   try {
     const runRepo = new ResearchRunRepository();
@@ -102,18 +105,24 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
     const candidateRepo = new CandidateResultRepository();
     const sourceRepo = new SourceDocumentRepository();
     const evidenceRepo = new EvidenceRecordRepository();
+    const progressEventRepo = new ProgressEventRepository();
+    const usageRepo = new ModelUsageRepository();
 
     dbRun = await runRepo.findById(runId);
     if (dbRun) {
       task = await taskRepo.findById(dbRun.task_id);
-      const [candRes, srcRes, evRes] = await Promise.all([
+      const [candRes, srcRes, evRes, evHistory, runUsage] = await Promise.all([
         candidateRepo.listByRunId(runId),
         sourceRepo.listByRunId(runId),
         evidenceRepo.listByRunId(runId),
+        progressEventRepo.listByRunId(runId),
+        usageRepo.getRunUsageSummary(runId, dbRun.user_id),
       ]);
       candidates = candRes.data;
       sources = srcRes.data;
       evidence = evRes.data;
+      progressEvents = evHistory;
+      usage = runUsage;
     }
   } catch {
     // Non-fatal, handled by notFound check below
@@ -127,7 +136,7 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
   const statusVariant: 'success' | 'danger' | 'brand' =
     dbRun.status === RunStatus.COMPLETED
       ? 'success'
-      : dbRun.status === RunStatus.FAILED
+      : dbRun.status === RunStatus.FAILED || dbRun.status === RunStatus.CANCELLED
       ? 'danger'
       : 'brand';
 
@@ -148,17 +157,20 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
         <p className={styles.runQuery}>&ldquo;{queryText}&rdquo;</p>
       </header>
 
-      {dbRun.status === RunStatus.QUEUED && (
-        <Alert variant="info" title="Run Queued for Worker Execution">
-          This research run has been durably accepted and enqueued in PostgreSQL. A persistent worker daemon will claim and execute this run asynchronously.
-        </Alert>
-      )}
-
-      {dbRun.status === RunStatus.RUNNING && (
-        <Alert variant="info" title="Research Pipeline in Progress">
-          The research worker is currently executing the pipeline stage: <strong>{dbRun.current_stage}</strong>.
-        </Alert>
-      )}
+      <RunProgressTracker
+        runId={dbRun.id}
+        initialStatus={dbRun.status}
+        initialStage={dbRun.current_stage}
+        initialProgressPercent={dbRun.progress_percent ?? 0}
+        initialEvents={progressEvents.map((e) => ({
+          id: e.id,
+          stage: e.stage,
+          eventType: e.event_type,
+          sequenceNumber: e.sequence_number,
+          message: e.message,
+          createdAt: e.created_at,
+        }))}
+      />
 
       {dbRun.status === RunStatus.FAILED && (
         <Alert variant="danger" title="Research Run Failed">
@@ -174,6 +186,79 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
         <div><strong>Started At:</strong> {new Date(dbRun.started_at).toLocaleString()}</div>
         <div><strong>Completed At:</strong> {dbRun.completed_at ? new Date(dbRun.completed_at).toLocaleString() : 'In Progress'}</div>
       </div>
+
+      {usage && usage.totalRequests > 0 && (
+        <div style={{ marginTop: 'var(--space-6)' }}>
+          <Card variant="default">
+            <CardHeader>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <CardTitle as="h2">AI Model Usage &amp; Cost Accounting</CardTitle>
+                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <Badge variant="neutral">{usage.totalRequests} operations</Badge>
+                  {usage.totalEstimatedCostUsd !== null ? (
+                    <Badge variant={usage.unknownCostRequests > 0 ? 'neutral' : 'brand'}>
+                      {`$${Number(usage.totalEstimatedCostUsd).toFixed(4)} USD`}
+                      {usage.unknownCostRequests > 0 && ' (partial)'}
+                    </Badge>
+                  ) : (
+                    <Badge variant="neutral">Cost Unknown</Badge>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className={styles.metaRow} style={{ marginBottom: 'var(--space-4)' }}>
+                <div><strong>Total Tokens:</strong> {usage.totalTokens.toLocaleString()}</div>
+                <div><strong>Prompt Tokens:</strong> {usage.totalInputTokens.toLocaleString()}</div>
+                <div><strong>Completion Tokens:</strong> {usage.totalOutputTokens.toLocaleString()}</div>
+                <div><strong>Cached Tokens:</strong> {usage.cachedTokens.toLocaleString()}</div>
+                <div><strong>Reasoning Tokens:</strong> {usage.reasoningTokens.toLocaleString()}</div>
+                <div>
+                  <strong>Cost Status:</strong>{' '}
+                  {usage.unknownCostRequests > 0 ? (
+                    <span style={{ color: 'var(--color-warning)' }}>Partial / Unpriced Models</span>
+                  ) : usage.totalEstimatedCostUsd ? (
+                    <span>Provider-Aware Estimated</span>
+                  ) : (
+                    <span style={{ color: 'var(--color-text-secondary)' }}>Free-Tier / Self-Hosted</span>
+                  )}
+                </div>
+              </div>
+
+              {Object.keys(usage.byOperation).length > 0 && (
+                <div style={{ marginTop: 'var(--space-4)' }}>
+                  <h4 style={{ margin: '0 0 var(--space-2) 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                    Usage by Operation
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)' }}>
+                    {Object.entries(usage.byOperation).map(([op, data]) => (
+                      <div
+                        key={op}
+                        style={{
+                          padding: 'var(--space-3)',
+                          backgroundColor: 'var(--color-surface-subtle)',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--color-border)',
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, textTransform: 'capitalize', marginBottom: 'var(--space-1)' }}>
+                          {op.replace(/_/g, ' ')}
+                        </div>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                          Calls: {data.requests} | Tokens: {(data.inputTokens + data.outputTokens).toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, marginTop: 'var(--space-1)' }}>
+                          Cost: {data.estimatedCostUsd !== null ? `$${Number(data.estimatedCostUsd).toFixed(5)}` : 'Unknown'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {dbRun.synthesis && (
         <div style={{ marginTop: 'var(--space-6)' }}>

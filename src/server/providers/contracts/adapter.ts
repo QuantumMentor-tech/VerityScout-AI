@@ -19,8 +19,12 @@ import type { ConnectionTestResult } from '../connection-tester';
 export interface ProviderOperationContext {
   readonly userId: string;
   readonly correlationId: string;
-  readonly customBaseUrl?: string;
-  readonly abortSignal?: AbortSignal;
+  readonly customBaseUrl?: string | undefined;
+  readonly abortSignal?: AbortSignal | undefined;
+  readonly runId?: string | undefined;
+  readonly taskId?: string | undefined;
+  readonly operationType?: string | undefined;
+  readonly attempt?: number | undefined;
 }
 
 export interface AiProviderAdapter {

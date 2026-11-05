@@ -1,6 +1,6 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
-import { RunStatus, RunStage, MatchClassification } from '@/server/persistence/types';
+import { RunStatus, RunStage, MatchClassification, ProgressEventType } from '@/server/persistence/types';
 import { ResearchPlannerService } from '@/server/research/planner/research-planner.service';
 import { SearchExecutionService } from '@/server/search/search-execution.service';
 import { SourceIdentityService } from '@/server/search/provenance/source-identity.service';
@@ -13,6 +13,7 @@ import { ModelRouterService } from '@/server/models/router/model-router.service'
 import {
   ResearchRunRepository,
   CandidateResultRepository,
+  ProgressEventRepository,
 } from '@/server/persistence/repositories';
 import { ProviderCredentialService } from '@/server/services/provider-credential.service';
 import type { ClaimedResearchJob } from '@/server/queue/queue.types';
@@ -21,6 +22,8 @@ import type {
   PipelineExecutionOptions,
   PipelineExecutionResult,
 } from './orchestration.types';
+import { CancellationToken } from './cancellation-token';
+import { CancellationRequestedError } from '@/server/research/retry/error-classifier';
 import { logger } from '@/lib/logging/logger';
 
 export class ResearchPipelineOrchestrator {
@@ -36,6 +39,7 @@ export class ResearchPipelineOrchestrator {
   private readonly credentialService: ProviderCredentialService;
   private readonly runRepo: ResearchRunRepository;
   private readonly candidateRepo: CandidateResultRepository;
+  private readonly progressRepo: ProgressEventRepository;
   private readonly searchProviderId?: string | undefined;
   private readonly extractionProviderId?: string | undefined;
 
@@ -52,16 +56,103 @@ export class ResearchPipelineOrchestrator {
     this.credentialService = new ProviderCredentialService();
     this.runRepo = options?.runRepo ?? new ResearchRunRepository();
     this.candidateRepo = options?.candidateRepo ?? new CandidateResultRepository();
+    this.progressRepo = options?.progressRepo ?? new ProgressEventRepository();
     this.searchProviderId = options?.searchProviderId;
     this.extractionProviderId = options?.extractionProviderId;
   }
 
   /**
-   * Executes the full Step 31–42 research pipeline on a claimed job instance.
+   * Helper to safely record a sequential progress event and update run progress percent.
    */
-  async execute(job: ClaimedResearchJob): Promise<PipelineExecutionResult> {
+  private async recordProgress(
+    runId: string,
+    userId: string,
+    stage: RunStage,
+    eventType: ProgressEventType,
+    message: string,
+    progressPercent?: number | undefined,
+    metadata?: Record<string, unknown> | undefined
+  ): Promise<void> {
+    try {
+      await this.progressRepo.create({
+        run_id: runId,
+        user_id: userId,
+        stage,
+        event_type: eventType,
+        message,
+        metadata,
+      });
+
+      if (progressPercent !== undefined) {
+        await this.runRepo.updateStatus(
+          runId,
+          RunStatus.RUNNING,
+          stage,
+          { progress_percent: progressPercent },
+          userId
+        );
+      }
+    } catch (err: unknown) {
+      logger.warn('PIPELINE_RECORD_PROGRESS_FAILED', 'Failed to persist progress event', {
+        runId,
+        stage,
+        eventType,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  /**
+   * Safe cooperative cancellation finalizer that prevents overwriting COMPLETED runs.
+   */
+  private async handleCancellation(
+    runId: string,
+    userId: string,
+    startTime: number,
+    stage: RunStage
+  ): Promise<void> {
+    const durationMs = Date.now() - startTime;
+    const currentRun = await this.runRepo.findById(runId);
+    if (currentRun?.status === RunStatus.COMPLETED) {
+      logger.info('PIPELINE_CANCEL_IGNORED_COMPLETED', 'Run already completed; ignoring cancel', { runId });
+      return;
+    }
+
+    await this.runRepo.updateStatus(
+      runId,
+      RunStatus.CANCELLED,
+      stage,
+      {
+        completed_at: new Date(),
+        error_message: 'Execution was cancelled by user request',
+        execution_duration_ms: durationMs,
+      },
+      userId
+    );
+
+    await this.recordProgress(
+      runId,
+      userId,
+      stage,
+      'CANCELLED',
+      'Research run was cancelled by user request',
+      undefined,
+      { durationMs }
+    );
+  }
+
+  /**
+   * Executes the full Step 31–44 research pipeline on a claimed job instance with durable progress
+   * tracking and cooperative cancellation checks.
+   */
+  async execute(
+    job: ClaimedResearchJob,
+    cancellationToken?: CancellationToken
+  ): Promise<PipelineExecutionResult> {
     const startTime = Date.now();
     const { runId, userId } = job;
+    const token = cancellationToken ?? new CancellationToken(runId, this.runRepo);
+    let currentStage: RunStage = RunStage.INITIATED;
 
     logger.info('PIPELINE_RUN_STARTED', 'Starting asynchronous research pipeline execution', {
       runId,
@@ -71,13 +162,31 @@ export class ResearchPipelineOrchestrator {
     });
 
     try {
+      // Cancellation check before starting
+      await token.throwIfCancellationRequested();
+
       // 1. Stage: PLANNING (Step 31)
-      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.PLANNING, undefined, userId);
+      currentStage = RunStage.PLANNING;
+      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.PLANNING, { progress_percent: 10 }, userId);
+      await this.recordProgress(runId, userId, RunStage.PLANNING, 'STAGE_STARTED', 'Formulating research plan and query variations', 10);
 
       const plan = await this.plannerService.planResearch({
         rawQuery: job.payload.query,
         structuredConstraints: job.payload.constraints as Record<string, unknown> | undefined,
       });
+
+      await this.recordProgress(
+        runId,
+        userId,
+        RunStage.PLANNING,
+        'STAGE_COMPLETED',
+        `Generated ${plan.searchQueries.length} search queries for research intent`,
+        20,
+        { queryCount: plan.searchQueries.length }
+      );
+
+      // Check cancellation before Model Routing
+      await token.throwIfCancellationRequested();
 
       // 2. Model Routing check (Step 42)
       try {
@@ -98,8 +207,13 @@ export class ResearchPipelineOrchestrator {
         });
       }
 
+      // Check cancellation before Searching
+      await token.throwIfCancellationRequested();
+
       // 3. Stage: SEARCHING (Steps 33 & 35)
-      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.SEARCHING, undefined, userId);
+      currentStage = RunStage.SEARCHING;
+      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.SEARCHING, { progress_percent: 30 }, userId);
+      await this.recordProgress(runId, userId, RunStage.SEARCHING, 'STAGE_STARTED', 'Executing multi-query provider web searches', 30);
 
       // Resolve search provider & credentials gracefully
       let providerId = this.searchProviderId ?? 'tavily';
@@ -159,8 +273,26 @@ export class ResearchPipelineOrchestrator {
         claimsVerified: 0,
       });
 
+      await this.recordProgress(
+        runId,
+        userId,
+        RunStage.SEARCHING,
+        'STAGE_COMPLETED',
+        `Discovered ${searchSummary.totalResultsDiscovered} sources (${deduplicationSummary.sources.length} canonical)`,
+        45,
+        {
+          totalDiscovered: searchSummary.totalResultsDiscovered,
+          canonicalCount: deduplicationSummary.sources.length,
+        }
+      );
+
+      // Check cancellation before Extracting
+      await token.throwIfCancellationRequested();
+
       // 4. Stage: EXTRACTING (Step 34)
-      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.EXTRACTING, undefined, userId);
+      currentStage = RunStage.EXTRACTING;
+      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.EXTRACTING, { progress_percent: 50 }, userId);
+      await this.recordProgress(runId, userId, RunStage.EXTRACTING, 'STAGE_STARTED', 'Extracting structured content from web sources', 50);
 
       const extractionInputs = searchSummary.results.slice(0, 5);
       const extractionSummary = await this.sourceExtractionService.extractBatch(
@@ -179,8 +311,23 @@ export class ResearchPipelineOrchestrator {
         claimsVerified: 0,
       });
 
+      await this.recordProgress(
+        runId,
+        userId,
+        RunStage.EXTRACTING,
+        'STAGE_COMPLETED',
+        `Successfully extracted content from ${extractionSummary.totalSuccessful} sources`,
+        65,
+        { successful: extractionSummary.totalSuccessful }
+      );
+
+      // Check cancellation before Verifying & Claim Extraction
+      await token.throwIfCancellationRequested();
+
       // 5. Stage: VERIFYING & CLAIM EXTRACTION (Step 36)
-      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.VERIFYING, undefined, userId);
+      currentStage = RunStage.VERIFYING;
+      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.VERIFYING, { progress_percent: 70 }, userId);
+      await this.recordProgress(runId, userId, RunStage.VERIFYING, 'STAGE_STARTED', 'Extracting factual claims and validating evidence', 70);
 
       const allClaims: ExtractedClaim[] = [];
       const sourcesForSynthesis: Array<{
@@ -341,8 +488,26 @@ export class ResearchPipelineOrchestrator {
         }
       }
 
+      await this.recordProgress(
+        runId,
+        userId,
+        RunStage.VERIFYING,
+        'STAGE_COMPLETED',
+        `Verified ${allClaims.length} factual claims across ${candidateList.length} candidate options`,
+        80,
+        {
+          claimsCount: allClaims.length,
+          candidateCount: candidateList.length,
+        }
+      );
+
+      // Check cancellation before Synthesizing
+      await token.throwIfCancellationRequested();
+
       // 7. Stage: SYNTHESIZING (Step 40)
-      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.SYNTHESIZING, undefined, userId);
+      currentStage = RunStage.SYNTHESIZING;
+      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.SYNTHESIZING, { progress_percent: 85 }, userId);
+      await this.recordProgress(runId, userId, RunStage.SYNTHESIZING, 'STAGE_STARTED', 'Synthesizing evidence-linked research report', 85);
 
       const synthesisSources = sourcesForSynthesis.length > 0
         ? sourcesForSynthesis
@@ -363,8 +528,22 @@ export class ResearchPipelineOrchestrator {
         preferredStrategy: 'ai_provider',
       });
 
+      await this.recordProgress(
+        runId,
+        userId,
+        RunStage.SYNTHESIZING,
+        'STAGE_COMPLETED',
+        'Generated evidence-grounded research synthesis',
+        90
+      );
+
+      // Check cancellation before Finalizing & Persistence
+      await token.throwIfCancellationRequested();
+
       // 8. Stage: FINALIZING & PERSISTENCE
-      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.FINALIZING, undefined, userId);
+      currentStage = RunStage.FINALIZING;
+      await this.runRepo.updateStatus(runId, RunStatus.RUNNING, RunStage.FINALIZING, { progress_percent: 95 }, userId);
+      await this.recordProgress(runId, userId, RunStage.FINALIZING, 'STAGE_STARTED', 'Persisting candidate records and finalizing run', 95);
 
       // Persist candidate results with linked evidence
       for (const candidate of candidateList) {
@@ -411,6 +590,16 @@ export class ResearchPipelineOrchestrator {
         userId
       );
 
+      await this.recordProgress(
+        runId,
+        userId,
+        RunStage.FINALIZING,
+        'STAGE_COMPLETED',
+        'Research run completed successfully',
+        100,
+        { durationMs }
+      );
+
       logger.info('PIPELINE_RUN_COMPLETED', 'Research pipeline run finished successfully', {
         runId,
         durationMs,
@@ -430,6 +619,31 @@ export class ResearchPipelineOrchestrator {
       };
     } catch (fatalError: unknown) {
       const durationMs = Date.now() - startTime;
+      const isCancelled =
+        fatalError instanceof CancellationRequestedError ||
+        (fatalError instanceof Error && fatalError.name === 'CancellationRequestedError');
+
+      if (isCancelled) {
+        logger.info('PIPELINE_RUN_CANCELLED', 'Research pipeline cleanly aborted via cancellation token', {
+          runId,
+          stage: currentStage,
+          durationMs,
+        });
+
+        await this.handleCancellation(runId, userId, startTime, currentStage);
+
+        return {
+          runId,
+          success: false,
+          cancelled: true,
+          durationMs,
+          totalSourcesScanned: 0,
+          totalCandidatesFound: 0,
+          totalClaimsExtracted: 0,
+          error: 'Execution was cancelled by user request',
+        };
+      }
+
       const safeMessage =
         fatalError instanceof Error
           ? fatalError.message
@@ -442,10 +656,20 @@ export class ResearchPipelineOrchestrator {
       });
 
       try {
+        await this.recordProgress(
+          runId,
+          userId,
+          currentStage,
+          'FAILED',
+          `Pipeline failed at stage ${currentStage}: ${safeMessage}`,
+          undefined,
+          { durationMs, error: safeMessage }
+        );
+
         await this.runRepo.updateStatus(
           runId,
           RunStatus.FAILED,
-          RunStage.FINALIZING,
+          currentStage,
           {
             completed_at: new Date(),
             error_message: safeMessage,

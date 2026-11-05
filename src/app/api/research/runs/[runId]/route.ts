@@ -45,6 +45,8 @@ export async function GET(_req: NextRequest, context: RouteContext): Promise<Nex
         selectedModel: run.selected_model,
         errorMessage: run.error_message,
         cancellationReason: run.cancellation_reason,
+        progressPercent: run.progress_percent ?? 0,
+        executionDurationMs: run.execution_duration_ms ?? null,
         startedAt: run.started_at,
         completedAt: run.completed_at,
       },

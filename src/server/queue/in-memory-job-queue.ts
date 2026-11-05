@@ -22,7 +22,10 @@ interface InternalJobItem {
   maxAttempts: number;
   claimedBy: string | null;
   claimedAt: string | null;
+  leaseExpiresAt: string | null;
+  scheduledAt: string;
   lastError?: string;
+  failureCategory?: string;
   payload: ResearchJobPayload;
   createdAt: string;
   updatedAt: string;
@@ -52,6 +55,8 @@ export class InMemoryJobQueueAdapter implements IResearchJobQueue {
       maxAttempts: options?.maxAttempts ?? 3,
       claimedBy: null,
       claimedAt: null,
+      leaseExpiresAt: null,
+      scheduledAt: now,
       payload,
       createdAt: now,
       updatedAt: now,
@@ -62,13 +67,14 @@ export class InMemoryJobQueueAdapter implements IResearchJobQueue {
   }
 
   async claimNextJob(workerId: string): Promise<ClaimedResearchJob | null> {
+    const nowTime = Date.now();
     const queuedJobs = Array.from(this.jobs.values())
-      .filter((j) => j.status === 'QUEUED')
+      .filter((j) => j.status === 'QUEUED' && new Date(j.scheduledAt).getTime() <= nowTime)
       .sort((a, b) => {
         if (b.priority !== a.priority) {
           return b.priority - a.priority;
         }
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
       });
 
     const candidate = queuedJobs[0];
@@ -81,6 +87,7 @@ export class InMemoryJobQueueAdapter implements IResearchJobQueue {
     candidate.claimedBy = workerId;
     candidate.claimedAt = now;
     candidate.attempts += 1;
+    candidate.leaseExpiresAt = new Date(nowTime + 30000).toISOString();
     candidate.updatedAt = now;
 
     return {
@@ -90,6 +97,8 @@ export class InMemoryJobQueueAdapter implements IResearchJobQueue {
       userId: candidate.userId,
       priority: candidate.priority,
       attempts: candidate.attempts,
+      maxAttempts: candidate.maxAttempts,
+      leaseExpiresAt: candidate.leaseExpiresAt,
       payload: candidate.payload,
     };
   }
@@ -100,6 +109,7 @@ export class InMemoryJobQueueAdapter implements IResearchJobQueue {
       throw new QueueError(`Job ${jobId} not found`);
     }
     job.status = 'COMPLETED';
+    job.leaseExpiresAt = null;
     job.updatedAt = new Date().toISOString();
   }
 
@@ -110,7 +120,78 @@ export class InMemoryJobQueueAdapter implements IResearchJobQueue {
     }
     job.status = 'FAILED';
     job.lastError = error;
+    job.leaseExpiresAt = null;
     job.updatedAt = new Date().toISOString();
+  }
+
+  async scheduleRetry(
+    jobId: string,
+    runId: string,
+    error: string,
+    delayMs: number,
+    category?: string | undefined
+  ): Promise<void> {
+    const job = this.jobs.get(jobId);
+    if (!job || job.runId !== runId) {
+      throw new QueueError(`Job ${jobId} not found`);
+    }
+    job.status = 'QUEUED';
+    job.claimedBy = null;
+    job.claimedAt = null;
+    job.leaseExpiresAt = null;
+    job.scheduledAt = new Date(Date.now() + Math.max(0, delayMs)).toISOString();
+    job.lastError = error;
+    job.failureCategory = category ?? 'TRANSIENT';
+    job.updatedAt = new Date().toISOString();
+  }
+
+  async renewLease(jobId: string, leaseDurationMs: number = 30000): Promise<boolean> {
+    const job = this.jobs.get(jobId);
+    if (!job || job.status !== 'PROCESSING') {
+      return false;
+    }
+    job.leaseExpiresAt = new Date(Date.now() + Math.max(1000, leaseDurationMs)).toISOString();
+    job.updatedAt = new Date().toISOString();
+    return true;
+  }
+
+  async cancelJob(jobId: string, runId: string, reason?: string | undefined): Promise<void> {
+    const job = this.jobs.get(jobId);
+    if (!job || job.runId !== runId) {
+      throw new QueueError(`Job ${jobId} not found`);
+    }
+    job.status = 'FAILED';
+    job.lastError = reason ?? 'Cancelled by user';
+    job.failureCategory = 'CANCELLED';
+    job.leaseExpiresAt = null;
+    job.updatedAt = new Date().toISOString();
+  }
+
+  async getExpiredProcessingJobs(now: Date = new Date()): Promise<ClaimedResearchJob[]> {
+    const nowTime = now.getTime();
+    const expiredJobs: ClaimedResearchJob[] = [];
+
+    for (const job of this.jobs.values()) {
+      if (
+        job.status === 'PROCESSING' &&
+        job.leaseExpiresAt &&
+        new Date(job.leaseExpiresAt).getTime() < nowTime
+      ) {
+        expiredJobs.push({
+          id: job.id,
+          runId: job.runId,
+          taskId: job.taskId,
+          userId: job.userId,
+          priority: job.priority,
+          attempts: job.attempts,
+          maxAttempts: job.maxAttempts,
+          leaseExpiresAt: job.leaseExpiresAt,
+          payload: job.payload,
+        });
+      }
+    }
+
+    return expiredJobs;
   }
 
   async getMetrics(): Promise<QueueMetrics> {
@@ -159,6 +240,10 @@ export class InMemoryJobQueueAdapter implements IResearchJobQueue {
           max_attempts: job.maxAttempts,
           claimed_by: job.claimedBy,
           claimed_at: job.claimedAt,
+          lease_expires_at: job.leaseExpiresAt,
+          scheduled_at: job.scheduledAt,
+          last_error: job.lastError ?? null,
+          failure_category: job.failureCategory ?? null,
           payload: job.payload as unknown as Record<string, unknown>,
           created_at: job.createdAt,
           updated_at: job.updatedAt,

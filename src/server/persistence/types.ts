@@ -83,6 +83,19 @@ export enum ScheduleStatus {
   PAUSED = 'PAUSED',
   DISABLED_ERROR = 'DISABLED_ERROR',
   ARCHIVED = 'ARCHIVED',
+  RETIRED = 'RETIRED',
+}
+
+export enum OccurrenceStatus {
+  PLANNED = 'PLANNED',
+  DISPATCHING = 'DISPATCHING',
+  DISPATCHED = 'DISPATCHED',
+  RUNNING = 'RUNNING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+  SKIPPED = 'SKIPPED',
+  RECONCILIATION_REQUIRED = 'RECONCILIATION_REQUIRED',
 }
 
 export enum ChangeType {
@@ -134,13 +147,42 @@ export interface ResearchScheduleRow {
   readonly id: string;
   readonly task_id: string;
   readonly user_id: string;
+  readonly name: string | null;
+  readonly revision: number;
   readonly status: ScheduleStatus;
   readonly cron_expression: string;
+  readonly recurrence_rule: Record<string, unknown> | null;
+  readonly scheduled_time: string | null;
+  readonly request_snapshot: Record<string, unknown> | null;
   readonly timezone: string;
   readonly last_run_at: string | null;
+  readonly last_dispatched_at: string | null;
+  readonly last_run_id: string | null;
   readonly next_run_at: string;
   readonly consecutive_failures: number;
   readonly change_notification_threshold_pct: number;
+  readonly created_at: string;
+  readonly updated_at: string;
+}
+
+// -----------------------------------------------------------------------------
+// 2b. Schedule Occurrences Row
+// -----------------------------------------------------------------------------
+export interface ScheduleOccurrenceRow {
+  readonly id: string;
+  readonly schedule_id: string;
+  readonly user_id: string;
+  readonly schedule_revision: number;
+  readonly idempotency_key: string;
+  readonly scheduled_at: string;
+  readonly status: OccurrenceStatus;
+  readonly queue_job_id: string | null;
+  readonly research_run_id: string | null;
+  readonly dispatched_at: string | null;
+  readonly started_at: string | null;
+  readonly completed_at: string | null;
+  readonly error_message: string | null;
+  readonly recovery_metadata: Record<string, unknown> | null;
   readonly created_at: string;
   readonly updated_at: string;
 }
@@ -172,6 +214,8 @@ export interface ResearchRunRow {
   readonly selected_model: string | null;
   readonly error_message: string | null;
   readonly cancellation_reason: string | null;
+  readonly progress_percent?: number;
+  readonly execution_duration_ms?: number | null;
   readonly synthesis?: Record<string, unknown> | null;
   readonly started_at: string;
   readonly completed_at: string | null;
@@ -386,8 +430,98 @@ export interface ResearchJobQueueRow {
   readonly max_attempts: number;
   readonly claimed_by: string | null;
   readonly claimed_at: string | null;
+  readonly lease_expires_at?: string | null;
+  readonly scheduled_at?: string;
+  readonly last_error?: string | null;
+  readonly failure_category?: string | null;
   readonly payload: Record<string, unknown>;
   readonly created_at: string;
   readonly updated_at: string;
 }
+
+// -----------------------------------------------------------------------------
+// 15. Research Progress Events Row (Step 44)
+// -----------------------------------------------------------------------------
+export type ProgressEventType =
+  | 'STAGE_STARTED'
+  | 'PROGRESS_UPDATE'
+  | 'STAGE_COMPLETED'
+  | 'RETRY_SCHEDULED'
+  | 'CANCELLATION_REQUESTED'
+  | 'CANCELLED'
+  | 'RECOVERED'
+  | 'FAILED';
+
+export interface ResearchProgressEventRow {
+  readonly id: string; // UUID
+  readonly run_id: string; // UUID
+  readonly user_id: string; // UUID
+  readonly stage: RunStage;
+  readonly event_type: ProgressEventType;
+  readonly sequence_number: number;
+  readonly message: string;
+  readonly metadata: Record<string, unknown>;
+  readonly created_at: string;
+}
+
+// -----------------------------------------------------------------------------
+// 16. Model Usage Events Row (Step 45)
+// -----------------------------------------------------------------------------
+export const UsageSource = {
+  PROVIDER_REPORTED: 'PROVIDER_REPORTED',
+  LOCALLY_ESTIMATED: 'LOCALLY_ESTIMATED',
+  PARTIAL: 'PARTIAL',
+  UNKNOWN: 'UNKNOWN',
+} as const;
+export type UsageSource = (typeof UsageSource)[keyof typeof UsageSource];
+
+export const CostStatus = {
+  CALCULATED_ESTIMATE: 'CALCULATED_ESTIMATE',
+  PROVIDER_REPORTED_COST: 'PROVIDER_REPORTED_COST',
+  UNKNOWN_COST: 'UNKNOWN_COST',
+} as const;
+export type CostStatus = (typeof CostStatus)[keyof typeof CostStatus];
+
+export interface ModelUsageEventRow {
+  readonly id: string; // UUID
+  readonly user_id: string; // UUID
+  readonly run_id: string | null; // UUID
+  readonly task_id: string | null; // UUID
+  readonly attempt: number;
+  readonly provider_id: string;
+  readonly model_id: string;
+  readonly operation_type: string;
+  readonly request_id: string | null;
+  readonly idempotency_key: string;
+  readonly input_tokens: number | null;
+  readonly output_tokens: number | null;
+  readonly total_tokens: number | null;
+  readonly cached_tokens: number | null;
+  readonly reasoning_tokens: number | null;
+  readonly usage_source: UsageSource;
+  readonly estimated_cost_usd: string | null;
+  readonly provider_cost_usd: string | null;
+  readonly currency: string;
+  readonly cost_status: CostStatus;
+  readonly pricing_version: string | null;
+  readonly cost_explanation: string | null;
+  readonly latency_ms: number | null;
+  readonly metadata: Record<string, unknown>;
+  readonly recorded_at: string;
+}
+
+// -----------------------------------------------------------------------------
+// 17. Concurrency Slots Row (Step 45)
+// -----------------------------------------------------------------------------
+export interface ConcurrencySlotRow {
+  readonly id: string; // UUID
+  readonly scope_key: string;
+  readonly holder_id: string;
+  readonly slot_number: number;
+  readonly max_slots: number;
+  readonly lease_expires_at: string;
+  readonly created_at: string;
+}
+
+
 

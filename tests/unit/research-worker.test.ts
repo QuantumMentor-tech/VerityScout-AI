@@ -77,7 +77,7 @@ describe('Research Worker Daemon & Orchestration', () => {
     expect(metrics.queued).toBe(0);
   });
 
-  it('WORKER-004: Fails job when orchestrator returns unsuccessful result', async () => {
+  it('WORKER-004: Fails job when orchestrator returns non-retryable failure', async () => {
     (mockOrchestrator.execute as any).mockResolvedValueOnce({
       runId: samplePayload.runId,
       success: false,
@@ -85,7 +85,7 @@ describe('Research Worker Daemon & Orchestration', () => {
       totalSourcesScanned: 0,
       totalCandidatesFound: 0,
       totalClaimsExtracted: 0,
-      error: 'Upstream provider connection timeout',
+      error: 'Validation error: invalid request schema',
     });
 
     await queue.enqueue(samplePayload);
@@ -147,12 +147,16 @@ describe('Research Worker Daemon & Orchestration', () => {
     const mockEvidenceRepo = {
       create: vi.fn().mockResolvedValue({ id: 'ev-1' }),
     };
+    const mockProgressRepo = {
+      create: vi.fn().mockResolvedValue({ id: 'pr-1' }),
+    };
 
     const orchestrator = new ResearchPipelineOrchestrator({
       runRepo: mockRunRepo as any,
       candidateRepo: mockCandidateRepo as any,
       sourceDocRepo: mockSourceDocRepo as any,
       evidenceRepo: mockEvidenceRepo as any,
+      progressRepo: mockProgressRepo as any,
       searchProviderId: 'mock_search',
     });
 
@@ -177,28 +181,28 @@ describe('Research Worker Daemon & Orchestration', () => {
       samplePayload.runId,
       RunStatus.RUNNING,
       RunStage.PLANNING,
-      undefined,
+      expect.objectContaining({ progress_percent: 10 }),
       samplePayload.userId
     );
     expect(mockRunRepo.updateStatus).toHaveBeenCalledWith(
       samplePayload.runId,
       RunStatus.RUNNING,
       RunStage.SEARCHING,
-      undefined,
+      expect.objectContaining({ progress_percent: 30 }),
       samplePayload.userId
     );
     expect(mockRunRepo.updateStatus).toHaveBeenCalledWith(
       samplePayload.runId,
       RunStatus.RUNNING,
       RunStage.EXTRACTING,
-      undefined,
+      expect.objectContaining({ progress_percent: 50 }),
       samplePayload.userId
     );
     expect(mockRunRepo.updateStatus).toHaveBeenCalledWith(
       samplePayload.runId,
       RunStatus.RUNNING,
       RunStage.SYNTHESIZING,
-      undefined,
+      expect.objectContaining({ progress_percent: 85 }),
       samplePayload.userId
     );
     expect(mockRunRepo.updateStatus).toHaveBeenCalledWith(

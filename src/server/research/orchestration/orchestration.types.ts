@@ -15,6 +15,7 @@ import type {
   CandidateResultRepository,
   EvidenceRecordRepository,
   SourceDocumentRepository,
+  ProgressEventRepository,
 } from '@/server/persistence/repositories';
 import type { ResearchSynthesisOutput } from '@/server/synthesis/contracts';
 
@@ -32,6 +33,7 @@ export interface PipelineExecutionOptions {
   readonly candidateRepo?: CandidateResultRepository | undefined;
   readonly evidenceRepo?: EvidenceRecordRepository | undefined;
   readonly sourceDocRepo?: SourceDocumentRepository | undefined;
+  readonly progressRepo?: ProgressEventRepository | undefined;
   readonly searchProviderId?: SearchProviderId | undefined;
   readonly extractionProviderId?: ExtractionProviderId | undefined;
 }
@@ -39,6 +41,7 @@ export interface PipelineExecutionOptions {
 export interface PipelineExecutionResult {
   readonly runId: string;
   readonly success: boolean;
+  readonly cancelled?: boolean | undefined;
   readonly durationMs: number;
   readonly totalSourcesScanned: number;
   readonly totalCandidatesFound: number;

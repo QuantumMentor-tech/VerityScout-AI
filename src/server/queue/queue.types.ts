@@ -25,6 +25,8 @@ export interface ClaimedResearchJob {
   readonly userId: string;
   readonly priority: number;
   readonly attempts: number;
+  readonly maxAttempts?: number | undefined;
+  readonly leaseExpiresAt?: string | null | undefined;
   readonly payload: ResearchJobPayload;
 }
 
@@ -80,6 +82,33 @@ export interface IResearchJobQueue {
    * Transitions queue status to FAILED with the safe error message.
    */
   failJob(jobId: string, runId: string, error: string): Promise<void>;
+
+  /**
+   * Reschedules a job for delayed retry with exponential backoff.
+   * Transitions status back to QUEUED with future scheduled_at.
+   */
+  scheduleRetry(
+    jobId: string,
+    runId: string,
+    error: string,
+    delayMs: number,
+    category?: string | undefined
+  ): Promise<void>;
+
+  /**
+   * Renews the active worker lease deadline to signal worker vitality.
+   */
+  renewLease(jobId: string, leaseDurationMs?: number | undefined): Promise<boolean>;
+
+  /**
+   * Cancels a queued or processing job.
+   */
+  cancelJob(jobId: string, runId: string, reason?: string | undefined): Promise<void>;
+
+  /**
+   * Retrieves processing jobs whose worker lease has expired.
+   */
+  getExpiredProcessingJobs(now?: Date | undefined): Promise<ClaimedResearchJob[]>;
 
   /**
    * Returns operational queue metrics partitioned by job status.

@@ -13,3 +13,7 @@ export * from './research-schedule.repository';
 export * from './change-event.repository';
 export * from './usage-ledger.repository';
 export * from './auth.repository';
+export * from './progress-event.repository';
+export * from './model-usage.repository';
+export * from './concurrency-slot.repository';
+export * from './schedule-occurrence.repository';

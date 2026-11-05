@@ -11,6 +11,7 @@ import 'server-only';
  * 4. Integrates seamlessly with Step 26 connection test infrastructure while preparing for Steps 28-30 adapters.
  */
 
+import { randomUUID } from 'node:crypto';
 import {
   type AiProviderId,
   isAiProviderId,
@@ -46,6 +47,13 @@ import {
 import { OpenAiProviderAdapter } from './adapters/openai/openai.adapter';
 import { OpenRouterProviderAdapter } from './adapters/openrouter/openrouter.adapter';
 import { NimProviderAdapter } from './adapters/nim/nim.adapter';
+import {
+  getConcurrencyManager,
+  type IConcurrencyManager,
+  getDefaultUsageAccountingService,
+  type UsageAccountingService,
+} from '@/server/usage';
+import { logger } from '@/lib/logging/logger';
 
 export type ConnectionTestFn = (
   userId: string,
@@ -56,17 +64,23 @@ export type ConnectionTestFn = (
 export interface AiProviderRegistryOptions {
   readonly initialMetadata?: Partial<Record<AiProviderId, ProviderMetadata>>;
   readonly connectionTestFn?: ConnectionTestFn;
+  readonly concurrencyManager?: IConcurrencyManager;
+  readonly usageService?: UsageAccountingService;
 }
 
 export class AiProviderRegistry {
   private readonly metadataMap: Map<AiProviderId, ProviderMetadata>;
   private readonly adapterMap: Map<AiProviderId, AiProviderAdapter>;
   private readonly connectionTestFn: ConnectionTestFn;
+  private readonly concurrencyManager?: IConcurrencyManager | undefined;
+  private readonly usageService?: UsageAccountingService | undefined;
 
   constructor(options?: AiProviderRegistryOptions) {
     this.metadataMap = new Map();
     this.adapterMap = new Map();
     this.connectionTestFn = options?.connectionTestFn ?? testProviderConnection;
+    this.concurrencyManager = options?.concurrencyManager;
+    this.usageService = options?.usageService;
 
     // Populate baseline metadata
     for (const [id, meta] of Object.entries(BASELINE_PROVIDER_METADATA) as [AiProviderId, ProviderMetadata][]) {
@@ -166,7 +180,7 @@ export class AiProviderRegistry {
   ): Promise<ProviderOperationResult<ConnectionTestResult>> {
     assertValidProviderId(providerId);
 
-    const adapter = this.adapterMap.get(providerId);
+    const adapter = this.getAdapter(providerId);
     if (adapter) {
       return adapter.testConnection(context);
     }
@@ -216,7 +230,7 @@ export class AiProviderRegistry {
   ): Promise<ProviderOperationResult<readonly ModelDefinition[]>> {
     assertValidProviderId(providerId);
 
-    const adapter = this.adapterMap.get(providerId);
+    const adapter = this.getAdapter(providerId);
     if (!adapter) {
       return createErrorResult(
         createProviderError({
@@ -255,7 +269,7 @@ export class AiProviderRegistry {
       );
     }
 
-    const adapter = this.adapterMap.get(request.modelRef.providerId);
+    const adapter = this.getAdapter(request.modelRef.providerId);
     if (!adapter) {
       return createErrorResult(
         createProviderError({
@@ -268,7 +282,82 @@ export class AiProviderRegistry {
       );
     }
 
-    return adapter.generateText(request, context);
+    const concurrencyManager = this.concurrencyManager ?? getConcurrencyManager();
+    const scopeKey = `provider:${request.modelRef.providerId}`;
+    const maxSlots = this.getProviderConcurrencyLimit(request.modelRef.providerId);
+    const holderId = `inf-${context.userId}-${Date.now()}-${randomUUID().slice(0, 8)}`;
+
+    try {
+      return await concurrencyManager.executeWithConcurrency(
+        scopeKey,
+        maxSlots,
+        holderId,
+        async () => {
+          const result = await adapter.generateText(request, context);
+
+          // Asynchronously record usage if successful
+          if (result.success && result.data) {
+            try {
+              const usageService = this.usageService ?? getDefaultUsageAccountingService();
+              await usageService.recordInferenceUsage({
+                userId: context.userId,
+                runId: context.runId,
+                taskId: context.taskId,
+                attempt: context.attempt ?? 1,
+                providerId: request.modelRef.providerId,
+                modelId: request.modelRef.modelId,
+                operationType: context.operationType ?? 'standalone_inference',
+                requestId: context.correlationId,
+                inputTokens: result.data.usage?.promptTokens,
+                outputTokens: result.data.usage?.completionTokens,
+                totalTokens: result.data.usage?.totalTokens,
+                usageSource: result.data.usage ? 'PROVIDER_REPORTED' : 'UNKNOWN',
+                latencyMs: result.latencyMs,
+              });
+            } catch (usageErr) {
+              logger.warn('PROVIDER_USAGE_RECORD_WARNING', 'Failed to record usage event', {
+                correlationId: context.correlationId,
+                error: usageErr instanceof Error ? usageErr.message : String(usageErr),
+              });
+            }
+          }
+
+          return result;
+        },
+        {
+          leaseDurationMs: 30000,
+          acquisitionTimeoutMs: 10000,
+          signal: context.abortSignal,
+        }
+      );
+    } catch (concurrencyErr: unknown) {
+      return createErrorResult(
+        createProviderError({
+          code: 'RATE_LIMITED',
+          message:
+            concurrencyErr instanceof Error
+              ? concurrencyErr.message
+              : `Concurrency limit exceeded for provider "${request.modelRef.providerId}"`,
+          providerId: request.modelRef.providerId,
+          correlationId: context.correlationId,
+          isRetryableOverride: true,
+        }),
+        Math.max(0, Date.now() - startTime)
+      );
+    }
+  }
+
+  private getProviderConcurrencyLimit(providerId: string): number {
+    switch (providerId.toLowerCase()) {
+      case 'openai':
+        return 5;
+      case 'openrouter':
+        return 4;
+      case 'nim':
+        return 2;
+      default:
+        return 5;
+    }
   }
 
   private mapConnectionCodeToErrorCode(code: string): ProviderErrorCode {

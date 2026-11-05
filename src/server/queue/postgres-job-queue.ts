@@ -71,8 +71,8 @@ export class PostgresJobQueueAdapter implements IResearchJobQueue {
       WITH next_job AS (
         SELECT id
         FROM research_job_queue
-        WHERE status = 'QUEUED'
-        ORDER BY priority DESC, created_at ASC
+        WHERE status = 'QUEUED' AND scheduled_at <= NOW()
+        ORDER BY priority DESC, scheduled_at ASC
         LIMIT 1
         FOR UPDATE SKIP LOCKED
       )
@@ -80,11 +80,12 @@ export class PostgresJobQueueAdapter implements IResearchJobQueue {
       SET status = 'PROCESSING',
           claimed_by = $1,
           claimed_at = NOW(),
+          lease_expires_at = NOW() + INTERVAL '30 seconds',
           attempts = q.attempts + 1,
           updated_at = NOW()
       FROM next_job
       WHERE q.id = next_job.id
-      RETURNING q.id, q.run_id, q.task_id, q.user_id, q.priority, q.attempts, q.payload;
+      RETURNING q.id, q.run_id, q.task_id, q.user_id, q.priority, q.attempts, q.max_attempts, q.lease_expires_at, q.payload;
     `;
 
     try {
@@ -95,6 +96,8 @@ export class PostgresJobQueueAdapter implements IResearchJobQueue {
         user_id: string;
         priority: number;
         attempts: number;
+        max_attempts: number;
+        lease_expires_at: string | null;
         payload: ResearchJobPayload | string;
       }>(this.pool, sql, [workerId]);
 
@@ -113,6 +116,7 @@ export class PostgresJobQueueAdapter implements IResearchJobQueue {
         jobId: row.id,
         runId: row.run_id,
         attempts: row.attempts,
+        maxAttempts: row.max_attempts,
       });
 
       return {
@@ -122,6 +126,8 @@ export class PostgresJobQueueAdapter implements IResearchJobQueue {
         userId: row.user_id,
         priority: row.priority,
         attempts: row.attempts,
+        maxAttempts: row.max_attempts,
+        leaseExpiresAt: row.lease_expires_at,
         payload: parsedPayload,
       };
     } catch (err: unknown) {
@@ -161,12 +167,13 @@ export class PostgresJobQueueAdapter implements IResearchJobQueue {
     const sql = `
       UPDATE research_job_queue
       SET status = 'FAILED',
+          last_error = $2,
           updated_at = NOW()
       WHERE id = $1
     `;
 
     try {
-      await executeQuery(this.pool, sql, [jobId]);
+      await executeQuery(this.pool, sql, [jobId, error]);
       logger.warn('QUEUE_JOB_FAILED', 'Research job marked as failed in queue', {
         jobId,
         runId,
@@ -179,6 +186,142 @@ export class PostgresJobQueueAdapter implements IResearchJobQueue {
         error: err instanceof Error ? err.message : String(err),
       });
       throw new QueueError('Failed to mark job as failed', err);
+    }
+  }
+
+  async scheduleRetry(
+    jobId: string,
+    runId: string,
+    error: string,
+    delayMs: number,
+    category?: string | undefined
+  ): Promise<void> {
+    const sql = `
+      UPDATE research_job_queue
+      SET status = 'QUEUED',
+          claimed_by = NULL,
+          claimed_at = NULL,
+          lease_expires_at = NULL,
+          scheduled_at = NOW() + ($2 || ' milliseconds')::INTERVAL,
+          last_error = $3,
+          failure_category = $4,
+          updated_at = NOW()
+      WHERE id = $1
+    `;
+
+    try {
+      await executeQuery(this.pool, sql, [
+        jobId,
+        Math.max(0, Math.floor(delayMs)).toString(),
+        error,
+        category ?? 'TRANSIENT',
+      ]);
+      logger.info('QUEUE_JOB_RETRY_SCHEDULED', 'Research job rescheduled for retry', {
+        jobId,
+        runId,
+        delayMs,
+        category,
+      });
+    } catch (err: unknown) {
+      logger.error('QUEUE_JOB_RETRY_FAILED', 'Failed to schedule job retry', {
+        jobId,
+        runId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw new QueueError('Failed to schedule job retry', err);
+    }
+  }
+
+  async renewLease(jobId: string, leaseDurationMs: number = 30000): Promise<boolean> {
+    const sql = `
+      UPDATE research_job_queue
+      SET lease_expires_at = NOW() + ($2 || ' milliseconds')::INTERVAL,
+          updated_at = NOW()
+      WHERE id = $1 AND status = 'PROCESSING'
+      RETURNING id
+    `;
+
+    try {
+      const result = await executeQuery<{ id: string }>(this.pool, sql, [
+        jobId,
+        Math.max(1000, Math.floor(leaseDurationMs)).toString(),
+      ]);
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (err: unknown) {
+      logger.warn('QUEUE_LEASE_RENEW_FAILED', 'Failed to renew worker lease heartbeat', {
+        jobId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return false;
+    }
+  }
+
+  async cancelJob(jobId: string, runId: string, reason?: string | undefined): Promise<void> {
+    const sql = `
+      UPDATE research_job_queue
+      SET status = 'FAILED',
+          last_error = $2,
+          failure_category = 'CANCELLED',
+          updated_at = NOW()
+      WHERE id = $1
+    `;
+
+    try {
+      await executeQuery(this.pool, sql, [jobId, reason ?? 'Cancelled by user']);
+      logger.info('QUEUE_JOB_CANCELLED', 'Research job marked as cancelled in queue', {
+        jobId,
+        runId,
+        reason,
+      });
+    } catch (err: unknown) {
+      logger.error('QUEUE_JOB_CANCEL_FAILED', 'Failed to cancel queue job', {
+        jobId,
+        runId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw new QueueError('Failed to cancel job in queue', err);
+    }
+  }
+
+  async getExpiredProcessingJobs(now: Date = new Date()): Promise<ClaimedResearchJob[]> {
+    const sql = `
+      SELECT id, run_id, task_id, user_id, priority, attempts, max_attempts, lease_expires_at, payload
+      FROM research_job_queue
+      WHERE status = 'PROCESSING' AND lease_expires_at < $1
+    `;
+
+    try {
+      const result = await executeQuery<{
+        id: string;
+        run_id: string;
+        task_id: string;
+        user_id: string;
+        priority: number;
+        attempts: number;
+        max_attempts: number;
+        lease_expires_at: string | null;
+        payload: ResearchJobPayload | string;
+      }>(this.pool, sql, [now]);
+
+      return result.rows.map((row) => ({
+        id: row.id,
+        runId: row.run_id,
+        taskId: row.task_id,
+        userId: row.user_id,
+        priority: row.priority,
+        attempts: row.attempts,
+        maxAttempts: row.max_attempts,
+        leaseExpiresAt: row.lease_expires_at,
+        payload:
+          typeof row.payload === 'string'
+            ? (JSON.parse(row.payload) as ResearchJobPayload)
+            : row.payload,
+      }));
+    } catch (err: unknown) {
+      logger.error('QUEUE_GET_EXPIRED_FAILED', 'Failed to retrieve expired processing jobs', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw new QueueError('Failed to query expired processing jobs', err);
     }
   }
 

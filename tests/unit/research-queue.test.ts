@@ -170,7 +170,7 @@ describe('Research Job Queue', () => {
 
       expect(mockPool.query).toHaveBeenCalledWith(
         expect.stringContaining("SET status = 'FAILED'"),
-        ['job-1']
+        ['job-1', 'Connection reset']
       );
     });
 

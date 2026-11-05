@@ -115,9 +115,9 @@ export class AiClaimExtractor {
     const userPrompt = buildClaimExtractionUserPrompt(document.title, sourceText, targetAttributes);
 
     // 4. Dispatch Inference Request
-    const result = await adapter.generateText(
+    const result = await registry.generateText(
       {
-        modelRef: { providerId, modelId: model },
+        modelRef: { providerId: targetProviderId, modelId: model },
         messages: [
           { role: 'system', content: CLAIM_EXTRACTION_SYSTEM_PROMPT },
           { role: 'user', content: userPrompt },
@@ -129,6 +129,8 @@ export class AiClaimExtractor {
       {
         userId,
         correlationId: `${runId}-${sourceDocumentId}`,
+        runId,
+        operationType: 'claim_extraction',
         ...(signal ? { abortSignal: signal } : {}),
       }
     );

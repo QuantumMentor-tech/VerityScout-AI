@@ -89,7 +89,7 @@ export class AiResearchSynthesizer {
     const userPrompt = buildSynthesisUserPrompt(query, claims, sources);
 
     try {
-      const result = await adapter.generateText(
+      const result = await registry.generateText(
         {
           modelRef: { providerId: pId, modelId: targetModelId },
           messages: [
@@ -102,6 +102,8 @@ export class AiResearchSynthesizer {
         {
           userId,
           correlationId: `synthesis-${runId}`,
+          runId,
+          operationType: 'research_synthesis',
           ...(signal ? { abortSignal: signal } : {}),
         },
       );

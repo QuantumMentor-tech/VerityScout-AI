@@ -155,6 +155,13 @@ export async function closePool(): Promise<void> {
 }
 
 /**
+ * Testing helper: sets the pool singleton directly (e.g. For in-memory integration test pools).
+ */
+export function _setPoolForTesting(pool: Pool | null): void {
+  poolInstance = pool;
+}
+
+/**
  * Testing helper: resets the pool singleton without draining if already closed.
  */
 export function _resetPoolForTesting(): void {

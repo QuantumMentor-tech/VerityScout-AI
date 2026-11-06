@@ -65,13 +65,13 @@ export class EvidenceRecordRepository {
     const sql = userId
       ? `
         SELECT * FROM evidence_records
-        WHERE source_document_id = $1 AND user_id = $2
-        ORDER BY char_offset_start ASC NULLS LAST
+        WHERE source_id = $1 AND user_id = $2
+        ORDER BY extracted_at ASC
       `
       : `
         SELECT * FROM evidence_records
-        WHERE source_document_id = $1
-        ORDER BY char_offset_start ASC NULLS LAST
+        WHERE source_id = $1
+        ORDER BY extracted_at ASC
       `;
     const params = userId ? [sourceDocumentId, userId] : [sourceDocumentId];
     const result = await executeQuery<EvidenceRecordRow>(executor, sql, params);
@@ -102,13 +102,13 @@ export class EvidenceRecordRepository {
       ? `
         SELECT * FROM evidence_records
         WHERE run_id = $1 AND user_id = $2
-        ORDER BY created_at ASC
+        ORDER BY extracted_at ASC
         LIMIT $3 OFFSET $4
       `
       : `
         SELECT * FROM evidence_records
         WHERE run_id = $1
-        ORDER BY created_at ASC
+        ORDER BY extracted_at ASC
         LIMIT $2 OFFSET $3
       `;
     const dataParams = userId ? [runId, userId, limit, offset] : [runId, limit, offset];
@@ -137,17 +137,21 @@ export class EvidenceRecordRepository {
     const executor = getExecutor(tx);
     const sql = `
       INSERT INTO evidence_records (
-        id, source_document_id, run_id, user_id, claim_text,
-        verbatim_excerpt, verification_state, confidence_score,
-        char_offset_start, char_offset_end, evaluation_details
+        id, source_id, run_id, user_id, candidate_id, claim_key,
+        extracted_raw_value, normalized_value, unit_or_currency,
+        verbatim_quote, verification_state, conflict_details,
+        extraction_method, location_in_document, confidence_score
       ) VALUES (
-        COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+        COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
       )
       RETURNING *
     `;
     const sourceId = input.source_id ?? input.source_document_id ?? '';
-    const claimKey = input.claim_key ?? input.claim_text ?? '';
-    const verbatim = input.verbatim_quote ?? input.verbatim_excerpt ?? '';
+    const claimKey = input.claim_key ?? input.claim_text ?? 'general_claim';
+    const rawVal = input.extracted_raw_value ?? input.claim_text ?? '';
+    const normVal = input.normalized_value ?? rawVal;
+    const verbatim = input.verbatim_quote ?? input.verbatim_excerpt ?? rawVal;
+    const method = input.extraction_method ?? 'LLM_STRUCTURED';
     const confidence = input.confidence_score !== undefined && input.confidence_score !== null
       ? String(input.confidence_score)
       : '1.0000';
@@ -157,13 +161,17 @@ export class EvidenceRecordRepository {
       sourceId,
       input.run_id,
       input.user_id,
+      input.candidate_id ?? null,
       claimKey,
+      rawVal,
+      normVal,
+      input.unit_or_currency ?? null,
       verbatim,
       input.verification_state,
+      input.conflict_details ?? null,
+      method,
+      input.location_in_document ?? null,
       confidence,
-      input.char_offset_start ?? null,
-      input.char_offset_end ?? null,
-      JSON.stringify(input.evaluation_details ?? {}),
     ];
 
     const result = await executeQuery<EvidenceRecordRow>(executor, sql, params);

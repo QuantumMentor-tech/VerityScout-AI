@@ -17,8 +17,12 @@ describe('Schedule Lifecycle and Occurrence API Endpoints (Step 47)', () => {
     vi.restoreAllMocks();
     vi.spyOn(authModule, 'requireAuthenticatedCaller').mockResolvedValue({
       userId: mockUserId,
-      email: 'tester@verityscout.local',
-      role: 'USER',
+      user: {
+        id: mockUserId,
+        email: 'tester@verityscout.local',
+        displayName: 'Tester',
+        createdAt: new Date().toISOString(),
+      },
     });
   });
 

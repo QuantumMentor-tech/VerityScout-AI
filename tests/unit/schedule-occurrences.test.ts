@@ -72,7 +72,7 @@ describe('Durable Schedule Occurrences Ledger (Step 47)', () => {
       vi.spyOn(baseRepoModule, 'executeQuery').mockResolvedValueOnce({
         rows: [existingOccurrence],
         rowCount: 1,
-      });
+      } as any);
 
       const input: CreateOccurrenceInput = {
         schedule_id: mockScheduleId,
@@ -112,7 +112,7 @@ describe('Durable Schedule Occurrences Ledger (Step 47)', () => {
           } as any,
         ],
         rowCount: 1,
-      });
+      } as any);
 
       const updated = await occurrenceRepo.updateStatus(occurrenceId, OccurrenceStatus.DISPATCHED, {
         research_run_id: mockRunId,
@@ -130,7 +130,7 @@ describe('Durable Schedule Occurrences Ledger (Step 47)', () => {
       vi.spyOn(baseRepoModule, 'executeQuery').mockResolvedValueOnce({
         rows: [{ id: 'occ-1' }, { id: 'occ-2' }],
         rowCount: 2,
-      });
+      } as any);
 
       const skippedCount = await occurrenceRepo.markPendingAsSkippedForSchedule(
         mockScheduleId,

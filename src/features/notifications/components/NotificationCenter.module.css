@@ -1,0 +1,221 @@
+.panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 400px;
+  max-width: calc(100vw - 24px);
+  max-height: 520px;
+  background: var(--color-background-elevated, #0f172a);
+  border: 1px solid var(--color-border, #334155);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.15s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--color-border, #334155);
+  background: var(--color-surface, #1e293b);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-foreground, #f8fafc);
+  margin: 0;
+}
+
+.unreadCountBadge {
+  background: var(--color-primary, #3b82f6);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.markAllBtn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--color-primary, #3b82f6);
+  cursor: pointer;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.markAllBtn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary-hover, #60a5fa);
+}
+
+.markAllBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tabBar {
+  display: flex;
+  padding: 4px 16px;
+  border-bottom: 1px solid var(--color-border, #334155);
+  background: rgba(15, 23, 42, 0.6);
+  gap: 8px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-muted-foreground, #94a3b8);
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.tab:hover {
+  color: var(--color-foreground, #f8fafc);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tabActive {
+  color: var(--color-primary, #3b82f6);
+  background: rgba(59, 130, 246, 0.1);
+  font-weight: 600;
+}
+
+.listContainer {
+  padding: var(--space-3, 12px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  flex: 1;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8, 32px) var(--space-4, 16px);
+  text-align: center;
+  color: var(--color-muted-foreground, #94a3b8);
+  gap: var(--space-2, 8px);
+}
+
+.emptyIcon {
+  width: 36px;
+  height: 36px;
+  stroke: var(--color-muted, #64748b);
+  margin-bottom: 4px;
+}
+
+.emptyText {
+  font-size: 0.875rem;
+  margin: 0;
+  color: var(--color-foreground, #f8fafc);
+  font-weight: 500;
+}
+
+.emptySubtext {
+  font-size: 0.75rem;
+  margin: 0;
+  color: var(--color-muted, #64748b);
+}
+
+.loadingState {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--color-muted-foreground, #94a3b8);
+  font-size: 0.875rem;
+}
+
+.errorState {
+  padding: 24px 16px;
+  text-align: center;
+  color: #f87171;
+  font-size: 0.8125rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.retryBtn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.retryBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.footer {
+  padding: 8px 16px;
+  border-top: 1px solid var(--color-border, #334155);
+  background: var(--color-surface, #1e293b);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footerLink {
+  font-size: 0.75rem;
+  color: var(--color-primary, #3b82f6);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}
+
+.loadMoreBtn {
+  background: none;
+  border: none;
+  color: var(--color-primary, #3b82f6);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.loadMoreBtn:hover {
+  text-decoration: underline;
+}
+

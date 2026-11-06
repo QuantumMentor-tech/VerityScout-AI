@@ -241,7 +241,7 @@ export function mapNimHttpError(
   } else if (status >= 500) {
     code = 'PROVIDER_UNAVAILABLE';
     isRetryable = true;
-  } else if (status === 400) {
+  } else if (status === 400 || status === 422) {
     code = 'INVALID_REQUEST';
     isRetryable = false;
   } else {

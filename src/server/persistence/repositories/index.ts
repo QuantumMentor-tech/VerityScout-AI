@@ -17,3 +17,5 @@ export * from './progress-event.repository';
 export * from './model-usage.repository';
 export * from './concurrency-slot.repository';
 export * from './schedule-occurrence.repository';
+export * from './research-comparison.repository';
+export * from './notification.repository';

@@ -228,7 +228,7 @@ describe('Cross-User Resource Ownership & Tenant Isolation (Step 24 / AC-04, AC-
 
       expect(list).toHaveLength(0);
       expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE source_document_id = $1 AND user_id = $2'),
+        expect.stringContaining('WHERE source_id = $1 AND user_id = $2'),
         ['src-A', userB]
       );
     });

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS schedule_occurrences (
     idempotency_key VARCHAR(128) NOT NULL UNIQUE,
     scheduled_at TIMESTAMPTZ NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'PLANNED',
-    queue_job_id UUID NULL REFERENCES research_jobs(id) ON DELETE SET NULL,
+    queue_job_id UUID NULL REFERENCES research_job_queue(id) ON DELETE SET NULL,
     research_run_id UUID NULL REFERENCES research_runs(id) ON DELETE SET NULL,
     dispatched_at TIMESTAMPTZ NULL,
     started_at TIMESTAMPTZ NULL,

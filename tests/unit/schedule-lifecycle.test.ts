@@ -5,8 +5,7 @@ import {
   ScheduleOccurrenceRepository,
 } from '@/server/persistence/repositories';
 import * as txModule from '@/server/persistence/transaction';
-import { ScheduleStatus, TaskType } from '@/server/persistence/types';
-import { AppError } from '@/lib/errors/app-error';
+import { ScheduleStatus } from '@/server/persistence/types';
 
 describe('Schedule Lifecycle Controls: Pause, Resume, Edit, Retire (Step 47)', () => {
   let mockScheduleRepo: ResearchScheduleRepository;

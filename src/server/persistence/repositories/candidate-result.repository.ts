@@ -108,14 +108,14 @@ export class CandidateResultRepository {
   async listLinkedEvidence(
     candidateId: string,
     tx?: TransactionContext | PoolClient
-  ): Promise<Array<{ evidence_record_id: string; claim_type: string }>> {
+  ): Promise<Array<{ evidence_id: string }>> {
     const executor = getExecutor(tx);
     const sql = `
-      SELECT evidence_record_id, claim_type
+      SELECT evidence_id
       FROM candidate_evidence_links
       WHERE candidate_id = $1
     `;
-    const res = await executeQuery<{ evidence_record_id: string; claim_type: string }>(
+    const res = await executeQuery<{ evidence_id: string }>(
       executor,
       sql,
       [candidateId]
@@ -137,12 +137,12 @@ export class CandidateResultRepository {
     return withTransaction(async (transactionTx) => {
       const candidateSql = `
         INSERT INTO candidate_results (
-          id, run_id, user_id, name, match_classification, brand, model_number,
-          price_numeric, currency_code, availability_status, primary_source_url,
-          specifications, conflicts, exclusion_reason
+          id, run_id, user_id, title, classification, product_identifier, seller_or_domain,
+          canonical_url, price_usd, currency, availability,
+          specifications, constraint_evaluation
         ) VALUES (
           COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6, $7,
-          $8, $9, $10, $11, $12, $13, $14
+          $8, $9, $10, $11, $12, $13
         )
         RETURNING *
       `;
@@ -152,15 +152,14 @@ export class CandidateResultRepository {
         input.user_id,
         input.name,
         input.match_classification,
-        input.brand ?? null,
         input.model_number ?? null,
+        input.brand ?? 'unknown_seller',
+        input.primary_source_url ?? 'https://example.com/product',
         input.price_numeric ?? null,
         input.currency_code ?? 'USD',
-        input.availability_status ?? null,
-        input.primary_source_url ?? null,
+        input.availability_status ?? 'UNKNOWN',
         JSON.stringify(input.specifications ?? {}),
-        JSON.stringify(input.conflicts ?? {}),
-        input.exclusion_reason ?? null,
+        JSON.stringify({ passedConstraints: [], failedConstraints: [] }),
       ];
 
       const candidateRes = await transactionTx.query<CandidateResultRow>(
@@ -187,14 +186,13 @@ export class CandidateResultRepository {
 
         const linkSql = `
           INSERT INTO candidate_evidence_links (
-            candidate_id, evidence_record_id, claim_type
-          ) VALUES ($1, $2, $3)
-          ON CONFLICT (candidate_id, evidence_record_id) DO NOTHING
+            candidate_id, evidence_id
+          ) VALUES ($1, $2)
+          ON CONFLICT (candidate_id, evidence_id) DO NOTHING
         `;
         await transactionTx.query(linkSql, [
           candidate.id,
           link.evidence_record_id,
-          link.claim_type ?? 'general',
         ]);
       }
 

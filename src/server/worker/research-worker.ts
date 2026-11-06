@@ -11,6 +11,8 @@ import { RunStage, OccurrenceStatus } from '@/server/persistence/types';
 import { classifyError, calculateRetryDelay, shouldRetry } from '@/server/research/retry';
 import { ResearchRecoveryService } from './research-recovery.service';
 import { ResearchSchedulerService } from '@/server/schedules';
+import { ChangeDetectorService } from '@/server/changes';
+import { NotificationService } from '@/server/notifications';
 import { logger } from '@/lib/logging/logger';
 
 export interface ResearchWorkerOptions {
@@ -24,6 +26,8 @@ export interface ResearchWorkerOptions {
   readonly occurrenceRepo?: ScheduleOccurrenceRepository | undefined;
   readonly recoveryService?: ResearchRecoveryService | undefined;
   readonly schedulerService?: ResearchSchedulerService | undefined;
+  readonly changeDetectorService?: ChangeDetectorService | undefined;
+  readonly notificationService?: NotificationService | undefined;
 }
 
 export class ResearchWorker {
@@ -37,6 +41,8 @@ export class ResearchWorker {
   private readonly occurrenceRepo: ScheduleOccurrenceRepository;
   private readonly recoveryService: ResearchRecoveryService;
   private readonly schedulerService: ResearchSchedulerService;
+  private readonly changeDetectorService: ChangeDetectorService;
+  private readonly notificationService: NotificationService;
   private isRunning: boolean = false;
   private isProcessing: boolean = false;
   private pollTimeout: NodeJS.Timeout | null = null;
@@ -64,6 +70,10 @@ export class ResearchWorker {
         queue: this.queue,
         occurrenceRepo: this.occurrenceRepo,
       });
+    this.changeDetectorService =
+      options?.changeDetectorService ?? new ChangeDetectorService();
+    this.notificationService =
+      options?.notificationService ?? new NotificationService();
   }
 
   /**
@@ -239,6 +249,48 @@ export class ResearchWorker {
             runId: claimedJob.runId,
             durationMs: result.durationMs,
           });
+
+          // Trigger research change detection asynchronously / non-fatally
+          try {
+            const scheduleId = claimedJob.payload?.metadata?.scheduleId as string | undefined;
+            const comparisonResult = await this.changeDetectorService.compareRuns({
+              taskId: claimedJob.taskId,
+              currentRunId: claimedJob.runId,
+              userId: claimedJob.userId,
+              scheduleId: scheduleId ?? null,
+            });
+            logger.info('WORKER_CHANGE_DETECTION_COMPLETED', 'Change detection completed for run', {
+              runId: claimedJob.runId,
+              taskId: claimedJob.taskId,
+            });
+
+            // Trigger in-app notification processing for eligible changes
+            try {
+              await this.notificationService.processComparisonChanges(comparisonResult);
+              logger.info('WORKER_NOTIFICATIONS_PROCESSED', 'In-app notifications processed for comparison', {
+                comparisonId: comparisonResult.id,
+                runId: claimedJob.runId,
+              });
+            } catch (notifErr) {
+              logger.warn(
+                'WORKER_NOTIFICATION_PROCESSING_ERROR',
+                'Non-fatal error generating notifications after change detection',
+                {
+                  runId: claimedJob.runId,
+                  error: notifErr instanceof Error ? notifErr.message : String(notifErr),
+                }
+              );
+            }
+          } catch (changeErr) {
+            logger.warn(
+              'WORKER_CHANGE_DETECTION_ERROR',
+              'Non-fatal error running change detection after job completion',
+              {
+                runId: claimedJob.runId,
+                error: changeErr instanceof Error ? changeErr.message : String(changeErr),
+              }
+            );
+          }
         } else {
           // Failure handling with classification and bounded exponential retries
           const safeError = result.error ?? 'Unknown research pipeline failure';

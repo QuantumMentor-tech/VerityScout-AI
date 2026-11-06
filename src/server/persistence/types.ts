@@ -104,6 +104,31 @@ export enum ChangeType {
   STOCK_STATUS_CHANGE = 'STOCK_STATUS_CHANGE',
   SPECIFICATION_UPDATE = 'SPECIFICATION_UPDATE',
   NEW_OFFER_DISCOVERED = 'NEW_OFFER_DISCOVERED',
+  ADDED = 'ADDED',
+  REMOVED = 'REMOVED',
+  CHANGED = 'CHANGED',
+  UNCHANGED = 'UNCHANGED',
+  NEWLY_OBSERVED = 'NEWLY_OBSERVED',
+  NO_LONGER_OBSERVED = 'NO_LONGER_OBSERVED',
+  CONFLICTING = 'CONFLICTING',
+  UNKNOWN = 'UNKNOWN',
+  NOT_COMPARABLE = 'NOT_COMPARABLE',
+}
+
+export enum ChangeStatus {
+  SUPPORTED = 'SUPPORTED',
+  UNRESOLVED = 'UNRESOLVED',
+  CONFLICTING = 'CONFLICTING',
+  NOT_COMPARABLE = 'NOT_COMPARABLE',
+}
+
+export enum ComparisonStatus {
+  COMPLETED = 'COMPLETED',
+  FIRST_RUN_BASELINE = 'FIRST_RUN_BASELINE',
+  INELIGIBLE_SCOPE = 'INELIGIBLE_SCOPE',
+  NO_CHANGES_DETECTED = 'NO_CHANGES_DETECTED',
+  CHANGES_DETECTED = 'CHANGES_DETECTED',
+  FAILED = 'FAILED',
 }
 
 // -----------------------------------------------------------------------------
@@ -369,6 +394,31 @@ export interface ChangeEventRow {
   readonly canonical_url: string;
   readonly evidence_id: string | null;
   readonly detected_at: string;
+  readonly comparison_id?: string | null | undefined;
+  readonly candidate_id?: string | null | undefined;
+  readonly baseline_evidence_id?: string | null | undefined;
+  readonly reason_code?: string | null | undefined;
+  readonly change_status?: ChangeStatus | undefined;
+  readonly explanation?: string | null | undefined;
+  readonly idempotency_key?: string | null | undefined;
+}
+
+// -----------------------------------------------------------------------------
+// 10b. Research Comparisons Row (Step 48)
+// -----------------------------------------------------------------------------
+export interface ResearchComparisonRow {
+  readonly id: string;
+  readonly task_id: string;
+  readonly schedule_id: string | null;
+  readonly user_id: string;
+  readonly baseline_run_id: string;
+  readonly current_run_id: string;
+  readonly status: ComparisonStatus;
+  readonly comparison_policy_version: string;
+  readonly reason_code: string | null;
+  readonly summary: Record<string, unknown>;
+  readonly detected_at: string;
+  readonly created_at: string;
 }
 
 // -----------------------------------------------------------------------------
@@ -522,6 +572,49 @@ export interface ConcurrencySlotRow {
   readonly lease_expires_at: string;
   readonly created_at: string;
 }
+
+// -----------------------------------------------------------------------------
+// 18. In-App Notifications (Step 50)
+// -----------------------------------------------------------------------------
+export const NotificationType = {
+  PRICE_DROP: 'PRICE_DROP',
+  PRICE_INCREASE: 'PRICE_INCREASE',
+  STOCK_STATUS_CHANGED: 'STOCK_STATUS_CHANGED',
+  SPECIFICATION_UPDATED: 'SPECIFICATION_UPDATED',
+  NEW_OFFER_DISCOVERED: 'NEW_OFFER_DISCOVERED',
+  NEW_CANDIDATE_OBSERVED: 'NEW_CANDIDATE_OBSERVED',
+  ATTRIBUTE_NO_LONGER_OBSERVED: 'ATTRIBUTE_NO_LONGER_OBSERVED',
+  CONFLICTING_EVIDENCE_OBSERVED: 'CONFLICTING_EVIDENCE_OBSERVED',
+  RESEARCH_CHANGE_DETECTED: 'RESEARCH_CHANGE_DETECTED',
+} as const;
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
+
+export const SourceEventType = {
+  CHANGE_EVENT: 'CHANGE_EVENT',
+  RESEARCH_COMPARISON: 'RESEARCH_COMPARISON',
+} as const;
+export type SourceEventType = (typeof SourceEventType)[keyof typeof SourceEventType];
+
+export interface InAppNotificationRow {
+  readonly id: string; // UUID
+  readonly user_id: string; // UUID
+  readonly notification_type: NotificationType | string;
+  readonly source_event_type: SourceEventType | string;
+  readonly source_event_id: string | null; // UUID
+  readonly task_id: string; // UUID
+  readonly research_run_id: string; // UUID
+  readonly schedule_id: string | null; // UUID
+  readonly comparison_id: string; // UUID
+  readonly title: string;
+  readonly summary: string;
+  readonly metadata: Record<string, unknown>;
+  readonly idempotency_key: string;
+  readonly read_at: string | null;
+  readonly dismissed_at: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+}
+
 
 
 

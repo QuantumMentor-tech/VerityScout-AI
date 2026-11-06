@@ -222,11 +222,11 @@ describe('Domain Repository Layer (Step 22)', () => {
       expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO candidate_results'), expect.any(Array));
       expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO candidate_evidence_links'),
-        ['cand-1', 'evid-1', 'price']
+        ['cand-1', 'evid-1']
       );
       expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO candidate_evidence_links'),
-        ['cand-1', 'evid-2', 'specification']
+        ['cand-1', 'evid-2']
       );
     });
   });

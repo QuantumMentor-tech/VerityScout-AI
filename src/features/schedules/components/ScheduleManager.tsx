@@ -14,6 +14,8 @@ import {
   Input,
   FormField,
 } from '@/components/ui';
+import { ChangeHistoryList } from '@/features/changes';
+import type { ChangeItem, ChangeSummaryMetrics } from '@/features/changes';
 
 interface ScheduleItem {
   readonly id: string;
@@ -54,6 +56,12 @@ export function ScheduleManager(): React.JSX.Element {
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
   const [occurrences, setOccurrences] = useState<OccurrenceItem[]>([]);
   const [occurrencesLoading, setOccurrencesLoading] = useState(false);
+
+  // Changes viewing state
+  const [changesScheduleId, setChangesScheduleId] = useState<string | null>(null);
+  const [changesList, setChangesList] = useState<ChangeItem[]>([]);
+  const [changesSummary, setChangesSummary] = useState<ChangeSummaryMetrics | undefined>(undefined);
+  const [changesLoading, setChangesLoading] = useState(false);
 
   // Editing state
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
@@ -187,6 +195,44 @@ export function ScheduleManager(): React.JSX.Element {
       setOccurrences([]);
     } finally {
       setOccurrencesLoading(false);
+    }
+  };
+
+  const viewChanges = async (id: string) => {
+    if (changesScheduleId === id) {
+      setChangesScheduleId(null);
+      return;
+    }
+    setChangesScheduleId(id);
+    setChangesLoading(true);
+    try {
+      const res = await fetch(`/api/schedules/${id}/changes?limit=50`);
+      if (res.ok) {
+        const data = await res.json();
+        const mappedChanges: ChangeItem[] = (data.latestChanges ?? []).map((c: Record<string, unknown>) => ({
+          id: String(c.id ?? ''),
+          candidateTitle: String(c.candidate_title ?? 'Unknown Candidate'),
+          canonicalUrl: c.canonical_url ? String(c.canonical_url) : undefined,
+          fieldName: String(c.field_name ?? 'attribute'),
+          changeType: String(c.change_type ?? 'CHANGED'),
+          changeStatus: c.change_status ? String(c.change_status) : undefined,
+          reasonCode: c.reason_code ? String(c.reason_code) : undefined,
+          previousValue: String(c.previous_value ?? ''),
+          newValue: String(c.new_value ?? ''),
+          percentageDelta: c.percentage_delta != null ? Number(c.percentage_delta) : null,
+          evidenceId: c.evidence_id ? String(c.evidence_id) : null,
+          baselineEvidenceId: c.baseline_evidence_id ? String(c.baseline_evidence_id) : null,
+          explanation: c.explanation ? String(c.explanation) : undefined,
+          detectedAt: c.detected_at ? String(c.detected_at) : undefined,
+        }));
+        setChangesList(mappedChanges);
+        setChangesSummary(data.latestComparison?.summary as ChangeSummaryMetrics | undefined);
+      }
+    } catch {
+      setChangesList([]);
+      setChangesSummary(undefined);
+    } finally {
+      setChangesLoading(false);
     }
   };
 
@@ -325,6 +371,13 @@ export function ScheduleManager(): React.JSX.Element {
                   >
                     Occurrences
                   </Button>
+                  <Button
+                    size="sm"
+                    variant={changesScheduleId === s.id ? 'primary' : 'outline'}
+                    onClick={() => void viewChanges(s.id)}
+                  >
+                    Changes
+                  </Button>
                 </div>
                 {s.status !== 'ARCHIVED' && (
                   <Button size="sm" variant="danger" onClick={() => void handleRetire(s.id)}>
@@ -333,6 +386,21 @@ export function ScheduleManager(): React.JSX.Element {
                 )}
               </div>
             </CardFooter>
+
+            {/* Expandable Changes View */}
+            {changesScheduleId === s.id && (
+              <div style={{ borderTop: '1px solid var(--border-subtle)', padding: 'var(--space-3)', backgroundColor: 'var(--bg-subtle)' }}>
+                <h4 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+                  Detected Observation Changes
+                </h4>
+                <ChangeHistoryList
+                  changes={changesList}
+                  summary={changesSummary}
+                  isLoading={changesLoading}
+                  onRefresh={() => void viewChanges(s.id)}
+                />
+              </div>
+            )}
 
             {/* Expandable Occurrence Ledger View */}
             {selectedScheduleId === s.id && (

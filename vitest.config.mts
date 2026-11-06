@@ -15,5 +15,17 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
     exclude: ['node_modules', '.next', 'tests/e2e/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/**',
+        '.next/**',
+        'tests/**',
+        '**/*.test.{ts,tsx}',
+        '**/*.types.ts',
+        '**/*.d.ts',
+      ],
+    },
   },
 });

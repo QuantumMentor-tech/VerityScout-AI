@@ -97,6 +97,53 @@ export class ResearchRunRepository {
   }
 
   /**
+   * Lists runs associated with a specific recurring schedule, optionally scoped to owner.
+   */
+  async listByScheduleId(
+    scheduleId: string,
+    userId?: string,
+    options?: PaginationOptions,
+    tx?: TransactionContext | PoolClient
+  ): Promise<PaginatedResult<ResearchRunRow>> {
+    const executor = getExecutor(tx);
+    const { page, limit, offset } = resolvePagination(options);
+
+    const countSql = userId
+      ? 'SELECT COUNT(*)::int AS total FROM research_runs WHERE schedule_id = $1 AND user_id = $2'
+      : 'SELECT COUNT(*)::int AS total FROM research_runs WHERE schedule_id = $1';
+    const countParams = userId ? [scheduleId, userId] : [scheduleId];
+
+    const countRes = await executeQuery<{ total: number }>(executor, countSql, countParams);
+    const total = countRes.rows[0]?.total ?? 0;
+
+    const sql = userId
+      ? `
+        SELECT * FROM research_runs
+        WHERE schedule_id = $1 AND user_id = $2
+        ORDER BY created_at DESC
+        LIMIT $3 OFFSET $4
+      `
+      : `
+        SELECT * FROM research_runs
+        WHERE schedule_id = $1
+        ORDER BY created_at DESC
+        LIMIT $2 OFFSET $3
+      `;
+    const params = userId ? [scheduleId, userId, limit, offset] : [scheduleId, limit, offset];
+    const dataRes = await executeQuery<ResearchRunRow>(executor, sql, params);
+
+    return {
+      data: dataRes.rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
    * Lists all research runs owned by a user across all tasks.
    */
   async listByOwner(

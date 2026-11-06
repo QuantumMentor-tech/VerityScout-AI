@@ -66,6 +66,7 @@ CREATE POLICY rls_research_progress_events_tenant ON research_progress_events FO
 -- 2. Extend research_runs table with progress percentage and execution duration
 ALTER TABLE research_runs ADD COLUMN IF NOT EXISTS progress_percent INT NOT NULL DEFAULT 0;
 ALTER TABLE research_runs ADD COLUMN IF NOT EXISTS execution_duration_ms INT NULL;
+ALTER TABLE research_runs ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
 -- 3. Extend research_job_queue table with lease heartbeat and retry scheduling columns
 ALTER TABLE research_job_queue ADD COLUMN IF NOT EXISTS lease_expires_at TIMESTAMPTZ NULL;

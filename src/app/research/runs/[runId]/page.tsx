@@ -6,6 +6,7 @@ import { Alert, Badge, Card, CardHeader, CardTitle, CardContent } from '@/compon
 import { getDemoRunById, getSourcesForRun, SAMPLE_EVIDENCE_FIXTURE } from '@/fixtures';
 import { CandidateEvidenceView } from '@/features/evidence';
 import { RunProgressTracker } from '@/features/research';
+import { ExportToolbar } from '@/features/history';
 import { ResearchRunRepository, ResearchTaskRepository, CandidateResultRepository, SourceDocumentRepository, EvidenceRecordRepository, ProgressEventRepository, ModelUsageRepository } from '@/server/persistence/repositories';
 import { RunStatus } from '@/server/persistence/types';
 
@@ -147,11 +148,14 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
           &larr; Back to Research Workspace
         </Link>
         <div className={styles.titleArea}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <h1 className={styles.title}>Research Run Detail</h1>
-            <Badge variant="brand">{dbRun.id.slice(0, 8)}</Badge>
-            <Badge variant={statusVariant}>{dbRun.status}</Badge>
-            <Badge variant="neutral">{dbRun.current_stage}</Badge>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+              <h1 className={styles.title}>Research Run Detail</h1>
+              <Badge variant="brand">{dbRun.id.slice(0, 8)}</Badge>
+              <Badge variant={statusVariant}>{dbRun.status}</Badge>
+              <Badge variant="neutral">{dbRun.current_stage}</Badge>
+            </div>
+            <ExportToolbar runId={dbRun.id} />
           </div>
         </div>
         <p className={styles.runQuery}>&ldquo;{queryText}&rdquo;</p>

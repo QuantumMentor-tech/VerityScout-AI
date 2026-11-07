@@ -44,7 +44,19 @@ jobs:
         run: npm run typecheck
 
       - name: Run Unit & Component tests (Vitest)
-        run: npm run test
+        run: npm run test:unit
+
+      - name: Run Provider Contract tests
+        run: npm run test:contracts
+
+      - name: Run Integration tests
+        run: npm run test:integration
+
+      - name: Run Security & Privacy regression tests
+        run: npm run test:security
+
+      - name: Run Performance regression tests
+        run: npm run test:perf
 
       - name: Run Next.js production build
         run: npm run build

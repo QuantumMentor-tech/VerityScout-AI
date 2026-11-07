@@ -58,3 +58,13 @@
   color: var(--color-text-muted);
   margin-top: var(--space-3);
 }
+
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-4);
+  }
+
+  .scheduleGrid {
+    grid-template-columns: 1fr;
+  }
+}

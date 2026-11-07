@@ -17,26 +17,37 @@ export const ResearchHistoryList: React.FC<ResearchHistoryListProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters state
-  const [query, setQuery] = useState(initialFilters?.query ?? '');
+  // Filters state with debounced search and in-flight request cancellation (Step 57)
+  const [searchInput, setSearchInput] = useState(initialFilters?.query ?? '');
+  const [debouncedQuery, setDebouncedQuery] = useState(initialFilters?.query ?? '');
   const [status, setStatus] = useState(initialFilters?.status ?? 'ALL');
   const [taskType, setTaskType] = useState(initialFilters?.taskType ?? 'ALL');
   const [page, setPage] = useState(initialFilters?.page ?? 1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const fetchHistory = useCallback(async () => {
+  // Debounce keystrokes by 300ms to eliminate request stampedes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchInput);
+      setPage(1);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const fetchHistory = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
       params.set('page', String(page));
       params.set('limit', '15');
-      if (query.trim()) params.set('query', query.trim());
+      if (debouncedQuery.trim()) params.set('query', debouncedQuery.trim());
       if (status !== 'ALL') params.set('status', status);
       if (taskType !== 'ALL') params.set('taskType', taskType);
 
-      const res = await fetch(`/api/research/history?${params.toString()}`);
+      const res = await fetch(`/api/research/history?${params.toString()}`, signal ? { signal } : undefined);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? 'Failed to load research history');
@@ -47,21 +58,30 @@ export const ResearchHistoryList: React.FC<ResearchHistoryListProps> = ({
       setTotalPages(data.pagination?.totalPages ?? 1);
       setTotalCount(data.pagination?.total ?? 0);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        // Request superseded by newer input or component unmount; ignore safely
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Error loading history');
       setRuns([]);
     } finally {
       setIsLoading(false);
     }
-  }, [page, query, status, taskType]);
+  }, [page, debouncedQuery, status, taskType]);
 
   useEffect(() => {
-    void fetchHistory();
+    const controller = new AbortController();
+    void fetchHistory(controller.signal);
+
+    return () => {
+      controller.abort();
+    };
   }, [fetchHistory]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setDebouncedQuery(searchInput);
     setPage(1);
-    void fetchHistory();
   };
 
   const getStatusBadgeClass = (runStatus: string): string => {
@@ -86,8 +106,8 @@ export const ResearchHistoryList: React.FC<ResearchHistoryListProps> = ({
             type="text"
             className={styles.searchInput}
             placeholder="Search query, product, or task title..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
           <select
             className={styles.selectInput}
@@ -125,7 +145,7 @@ export const ResearchHistoryList: React.FC<ResearchHistoryListProps> = ({
         <ExportToolbar
           isHistoryExport={true}
           queryParams={{
-            query: query.trim() || undefined,
+            query: debouncedQuery.trim() || undefined,
             status: status !== 'ALL' ? status : undefined,
             taskType: taskType !== 'ALL' ? taskType : undefined,
           }}

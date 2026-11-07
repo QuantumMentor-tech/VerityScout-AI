@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Alert, Badge, Button, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 
 export interface ProgressEventItem {
@@ -35,10 +35,20 @@ export function RunProgressTracker({
   const [cancelFeedback, setCancelFeedback] = useState<string | null>(null);
 
   const isTerminal = status === 'COMPLETED' || status === 'CANCELLED' || status === 'FAILED';
+  const isFetchingRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchProgress = useCallback(async () => {
+    if (isFetchingRef.current || isTerminal) return;
+    isFetchingRef.current = true;
+
+    // Create abort controller for in-flight fetch
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
-      const res = await fetch(`/api/research/runs/${runId}/progress`);
+      const res = await fetch(`/api/research/runs/${runId}/progress`, { signal: controller.signal });
       if (res.ok) {
         const data = await res.json();
         setStatus(data.status);
@@ -49,18 +59,54 @@ export function RunProgressTracker({
         }
       }
     } catch {
-      // Ignore network polling glitches
+      // Ignore network polling glitches and abort errors
+    } finally {
+      isFetchingRef.current = false;
     }
-  }, [runId]);
+  }, [runId, isTerminal]);
 
   useEffect(() => {
     if (isTerminal) return;
 
-    const interval = setInterval(() => {
-      fetchProgress();
-    }, 2500);
+    let timer: NodeJS.Timeout | null = null;
+    let isCancelled = false;
 
-    return () => clearInterval(interval);
+    // Adaptive polling loop: schedules next poll only after previous fetch completes
+    const pollLoop = async () => {
+      if (isCancelled || isTerminal) return;
+
+      // Only poll when browser tab is visible (Page Visibility API - Step 57)
+      if (typeof document === 'undefined' || document.visibilityState !== 'hidden') {
+        await fetchProgress();
+      }
+
+      if (!isCancelled && !isTerminal) {
+        timer = setTimeout(pollLoop, 2500);
+      }
+    };
+
+    // Immediate initial poll followed by scheduled loops
+    timer = setTimeout(pollLoop, 2500);
+
+    // Immediate wakeup poll when user switches back to tab
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible' && !isTerminal) {
+        void fetchProgress();
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      isCancelled = true;
+      if (timer) clearTimeout(timer);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+      abortControllerRef.current?.abort();
+    };
   }, [isTerminal, fetchProgress]);
 
   const handleCancel = async () => {

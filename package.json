@@ -14,6 +14,9 @@
     "test:unit": "vitest run tests/unit",
     "test:contracts": "vitest run tests/contracts",
     "test:integration": "vitest run tests/integration",
+    "test:security": "vitest run tests/unit/security-and-privacy.test.ts",
+    "test:perf": "vitest run tests/unit/performance.test.ts",
+    "test:deploy": "vitest run tests/unit/deployment.test.ts",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -23,7 +26,10 @@
     "services:status": "docker compose ps",
     "db:migrate": "npx tsx src/server/persistence/migrations/run-migrations.ts migrate",
     "db:status": "npx tsx src/server/persistence/migrations/run-migrations.ts status",
-    "worker": "npx tsx src/server/worker/worker-entry.ts"
+    "worker": "npx tsx src/server/worker/worker-entry.ts",
+    "benchmark": "npx tsx src/benchmark/cli.ts",
+    "deploy:preflight": "npx tsx scripts/deploy/preflight.ts",
+    "deploy:smoke": "npx tsx scripts/deploy/smoke-test.ts"
   },
   "dependencies": {
     "jsdom": "^30.1.3",

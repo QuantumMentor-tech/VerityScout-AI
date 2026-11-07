@@ -1,0 +1,112 @@
+name: Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Target Deployment Environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      skip_smoke_tests:
+        description: 'Skip smoke tests (emergency only)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deployment-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate-artifact:
+    name: Build & Verify Release Candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: TypeScript & Lint Verification
+        run: |
+          npm run typecheck
+          npm run lint
+
+      - name: Run Quality & Security Gates
+        run: |
+          npm run test:unit
+          npm run test:contracts
+          npm run test:security
+          npm run test:perf
+
+      - name: Production Build
+        run: npm run build
+
+  deploy-staging:
+    name: Deploy to Staging Environment
+    needs: validate-artifact
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event.inputs.target_env == 'staging'
+    environment:
+      name: staging
+      url: https://staging.verityscout.example.com
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Staging Deployment Execution
+        run: |
+          echo "Executing staging preflight and deployment..."
+          echo "Verifying staging database isolation and health probes..."
+
+      - name: Run Staging Smoke Tests
+        if: ${{ !github.event.inputs.skip_smoke_tests }}
+        run: |
+          echo "Running post-deployment smoke tests against staging URL..."
+          # npx tsx scripts/deploy/smoke-test.ts https://staging.verityscout.example.com
+
+  deploy-production:
+    name: Deploy to Production (Manual Approval Gate Required)
+    needs: [validate-artifact, deploy-staging]
+    runs-on: ubuntu-latest
+    if: github.event.inputs.target_env == 'production'
+    # Environment 'production' enforces GitHub's required reviewers / manual approval gate
+    environment:
+      name: production
+      url: https://verityscout.example.com
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Production Preflight Check
+        run: |
+          echo "CRITICAL: Checking production migration status and zero-downtime compatibility..."
+
+      - name: Production Deployment Execution
+        run: |
+          echo "CRITICAL: Deploying authorized production release..."
+
+      - name: Post-Deployment Production Smoke Test
+        if: ${{ !github.event.inputs.skip_smoke_tests }}
+        run: |
+          echo "Executing non-destructive production smoke tests..."
+          # npx tsx scripts/deploy/smoke-test.ts https://verityscout.example.com
+

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { NotificationCenter } from './NotificationCenter';
 import styles from './NotificationBell.module.css';
 
@@ -13,8 +13,12 @@ export function NotificationBell({
 }: NotificationBellProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const isFetchingRef = useRef<boolean>(false);
 
   const fetchUnreadCount = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
     try {
       const res = await fetch('/api/notifications/unread-count');
       if (res.ok) {
@@ -25,21 +29,41 @@ export function NotificationBell({
       }
     } catch {
       // Non-fatal unread count failure (e.g. offline or unauthenticated)
+    } finally {
+      isFetchingRef.current = false;
     }
   }, []);
 
   useEffect(() => {
+    // Initial fetch on mount
     void fetchUnreadCount();
 
-    if (pollIntervalMs > 0) {
-      const intervalId = setInterval(() => {
-        void fetchUnreadCount();
-      }, pollIntervalMs);
+    if (pollIntervalMs <= 0) return;
 
-      return () => {
-        clearInterval(intervalId);
-      };
+    // Visibility-aware periodic polling (Step 57)
+    const intervalId = setInterval(() => {
+      if (typeof document === 'undefined' || document.visibilityState !== 'hidden') {
+        void fetchUnreadCount();
+      }
+    }, pollIntervalMs);
+
+    // Refresh immediately when tab gains focus
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        void fetchUnreadCount();
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
     }
+
+    return () => {
+      clearInterval(intervalId);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
   }, [fetchUnreadCount, pollIntervalMs]);
 
   const toggleOpen = () => {

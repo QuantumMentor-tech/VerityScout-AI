@@ -34,7 +34,7 @@ export const ExportToolbar: React.FC<ExportToolbarProps> = ({
   };
 
   return (
-    <div className={styles.toolbar}>
+    <div className={styles.toolbar} role="toolbar" aria-label="Export Options">
       <span className={styles.label}>Export:</span>
       <div className={styles.buttonGroup}>
         <a

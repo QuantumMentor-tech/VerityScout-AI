@@ -1,0 +1,61 @@
+case_id,category,title,status,execution_mode,checks_evaluated,checks_passed,failure_category,duration_ms,estimated_tokens,estimated_cost_usd
+"VS-BENCH-001","hardware_research","RTX 4070 Super 12GB VRAM Exact Specification Procurement","PASSED","controlled_pipeline",3,3,"NONE",7.67,305,0.001662
+"VS-BENCH-002","hardware_research","Confusingly Similar Hardware Model Disambiguation (RTX 4080 Super vs 4080)","PASSED","controlled_pipeline",2,2,"NONE",0.85,279,0.001597
+"VS-BENCH-003","hardware_research","Explicit Currency and Regional Market Restriction (EUR / Germany)","PASSED","controlled_pipeline",2,2,"NONE",3.26,307,0.001667
+"VS-BENCH-004","hardware_research","Condition Constraint Enforcement (New vs Refurbished Exclusion)","PASSED","controlled_pipeline",2,2,"NONE",0.43,284,0.001610
+"VS-BENCH-005","hardware_research","Physical Specification & Port Constraint Filtering","PASSED","controlled_pipeline",2,2,"NONE",0.24,283,0.001607
+"VS-BENCH-006","hardware_research","Search Snippet vs Live Page Availability Verification","PASSED","controlled_pipeline",2,2,"NONE",0.17,227,0.001468
+"VS-BENCH-007","hardware_research","Contradictory Retailer Pricing Preservation","PASSED","controlled_pipeline",2,2,"NONE",0.15,211,0.001427
+"VS-BENCH-008","hardware_research","Missing Technical Specification Handling","PASSED","controlled_pipeline",2,2,"NONE",0.21,315,0.001687
+"VS-BENCH-009","hardware_research","Cross-Border Listing Isolation (GBP vs USD Marketplace Leakage)","PASSED","controlled_pipeline",1,1,"NONE",0.17,242,0.001505
+"VS-BENCH-010","hardware_research","Discontinued / End-of-Life Model Availability Grounding","PASSED","controlled_pipeline",2,2,"NONE",0.22,267,0.001568
+"VS-BENCH-011","hardware_research","Hardware Hardware Revision Sub-SKU Disambiguation","PASSED","controlled_pipeline",1,1,"NONE",0.12,260,0.001550
+"VS-BENCH-012","hardware_research","Strong Match vs Near-Match Budget Boundary Partitioning","PASSED","controlled_pipeline",2,2,"NONE",0.1,214,0.001435
+"VS-BENCH-013","hardware_research","Unrealistically Restrictive Budget Handling (Zero Match Scenario)","PASSED","controlled_pipeline",2,2,"NONE",0.11,218,0.001445
+"VS-BENCH-014","hardware_research","Wrong-Currency Snippet False-Positive Prevention (CAD vs USD)","PASSED","controlled_pipeline",1,1,"NONE",0.09,201,0.001403
+"VS-BENCH-015","hardware_research","Inaccessible Source Network Error Non-Destructive Semantics","PASSED","controlled_pipeline",2,2,"NONE",0.07,208,0.001420
+"VS-BENCH-016","pc_components","PC Case with Integrated RGB Lighting and Controller Requirement","PASSED","controlled_pipeline",1,1,"NONE",0.09,292,0.001630
+"VS-BENCH-017","pc_components","Dual Tempered Glass Panoramic Chassis Aesthetics Verification","PASSED","controlled_pipeline",1,1,"NONE",0.12,257,0.001543
+"VS-BENCH-018","pc_components","Mini-ITX Small Form Factor Strict Volume Restriction","PASSED","controlled_pipeline",1,1,"NONE",0.56,328,0.001720
+"VS-BENCH-019","pc_components","360mm Top Radiator Liquid Cooling Clearance Verification","PASSED","controlled_pipeline",1,1,"NONE",0.1,281,0.001602
+"VS-BENCH-020","pc_components","Pre-Installed Fan Count Minimum Threshold Enforcement","PASSED","controlled_pipeline",1,1,"NONE",0.08,242,0.001505
+"VS-BENCH-021","pc_components","Maximum GPU Length Clearance Compatibility Constraint","PASSED","controlled_pipeline",1,1,"NONE",0.76,236,0.001490
+"VS-BENCH-022","pc_components","Missing Dimension Specifications in Merchant Listing","PASSED","controlled_pipeline",2,2,"NONE",0.1,231,0.001478
+"VS-BENCH-023","pc_components","Mandatory Front USB Type-C Port Omission in Budget Chassis","PASSED","controlled_pipeline",1,1,"NONE",0.1,247,0.001517
+"VS-BENCH-024","pc_components","Near-Match Classification for Minor Budget Exceedance ($5 over $100)","PASSED","controlled_pipeline",2,2,"NONE",0.09,199,0.001398
+"VS-BENCH-025","pc_components","Ambiguous Merchant Description & Missing Model Number","FAILED","controlled_pipeline",1,0,"MISSING_UNCERTAINTY_FLAG",0.42,245,0.001512
+"VS-BENCH-026","general_research","Comparative Factual Synthesis Across Independent SSD Benchmarks","PASSED","controlled_pipeline",2,2,"NONE",0.1,322,0.001705
+"VS-BENCH-027","general_research","Multi-Source Consensus Verification on DDR5 Memory Profiles","PASSED","controlled_pipeline",1,1,"NONE",0.15,299,0.001648
+"VS-BENCH-028","general_research","Temporal Freshness Sensitivity on Software Release Cycles","PASSED","controlled_pipeline",2,2,"NONE",0.08,309,0.001672
+"VS-BENCH-029","general_research","Stable Specification Document Retrieval (PCIe / ATX Standards)","PASSED","controlled_pipeline",1,1,"NONE",0.08,345,0.001762
+"VS-BENCH-030","general_research","Contradictory Source Statements on Thermal Throttling Behavior","PASSED","controlled_pipeline",1,1,"NONE",0.07,322,0.001705
+"VS-BENCH-031","general_research","Distinguishing Verified Benchmark Facts from Editorial Speculation","PASSED","controlled_pipeline",2,2,"NONE",0.07,233,0.001483
+"VS-BENCH-032","general_research","PCIe Lane Bifurcation and Chipset Architecture Whitepaper Verification","PASSED","controlled_pipeline",1,1,"NONE",0.07,346,0.001765
+"VS-BENCH-033","general_research","Honest Boundary Acknowledgment on Unanswerable Inquiries","PASSED","controlled_pipeline",1,1,"NONE",0.06,247,0.001517
+"VS-BENCH-034","general_research","Source-Grounded Technical Summarization Without Extrapolation","PASSED","controlled_pipeline",1,1,"NONE",0.07,277,0.001592
+"VS-BENCH-035","general_research","Syndicated Press Release vs Independent Corroboration Detection","PASSED","controlled_pipeline",1,1,"NONE",0.08,309,0.001672
+"VS-BENCH-036","general_research","Publication Date vs Live Retrieval Timestamp Temporal Grounding","PASSED","controlled_pipeline",2,2,"NONE",0.07,257,0.001543
+"VS-BENCH-037","general_research","Partial Claim Support & Attribute-Level Citation Mapping","PASSED","controlled_pipeline",1,1,"NONE",0.09,223,0.001458
+"VS-BENCH-038","general_research","Source Authority Hierarchy (Official RFC vs Forum Post)","PASSED","controlled_pipeline",1,1,"NONE",0.08,277,0.001592
+"VS-BENCH-039","general_research","Multi-Constraint Software Procurement with License Filtering","PASSED","controlled_pipeline",1,1,"NONE",0.1,318,0.001695
+"VS-BENCH-040","general_research","Concise Factual Synthesis Against Unsupported Fluff","PASSED","controlled_pipeline",2,2,"NONE",0.08,255,0.001538
+"VS-BENCH-041","constraint_ambiguity","Ambiguous Currency Symbol Disambiguation Requirement","FAILED","controlled_pipeline",2,1,"MISSING_UNCERTAINTY_FLAG",0.07,162,0.001305
+"VS-BENCH-042","constraint_ambiguity","Missing Regional Market for High-Voltage Appliance / Power Supply","PASSED","controlled_pipeline",1,1,"NONE",0.09,179,0.001347
+"VS-BENCH-043","constraint_ambiguity","Conflicting Condition Requirements Rejection","PASSED","controlled_pipeline",1,1,"NONE",0.09,275,0.001587
+"VS-BENCH-044","constraint_ambiguity","Invalid Negative Budget Input Validation","FAILED","controlled_pipeline",1,0,"MISSING_UNCERTAINTY_FLAG",0.06,197,0.001393
+"VS-BENCH-045","constraint_ambiguity","Zero-Budget FOSS Software Inquiry Interpretation","PASSED","controlled_pipeline",1,1,"NONE",0.06,236,0.001490
+"VS-BENCH-046","constraint_ambiguity","Extreme Price Ceiling Boundary ($0.50 GPU Inquiry)","PASSED","controlled_pipeline",1,1,"NONE",0.16,211,0.001427
+"VS-BENCH-047","constraint_ambiguity","Mutually Exclusive Mandatory and Excluded Specification Conflict","FAILED","controlled_pipeline",1,0,"MISSING_UNCERTAINTY_FLAG",0.09,264,0.001560
+"VS-BENCH-048","constraint_ambiguity","Multiple Incompatible Model Identifiers in Single Prompt","PASSED","controlled_pipeline",1,1,"NONE",0.1,215,0.001437
+"VS-BENCH-049","constraint_ambiguity","Vague Under-Specified Research Query Disambiguation","PASSED","controlled_pipeline",1,1,"NONE",0.08,155,0.001288
+"VS-BENCH-050","constraint_ambiguity","Omitted Critical Parameter in Hardware Upgrade Inquiry","PASSED","controlled_pipeline",1,1,"NONE",0.11,180,0.001350
+"VS-BENCH-051","evidence_integrity_failures","Anti-Bot Access Denied (HTTP 403) Non-Destructive Classification","PASSED","controlled_pipeline",2,2,"NONE",0.08,219,0.001448
+"VS-BENCH-052","evidence_integrity_failures","Empty Extraction Body and Missing Product DOM Handling","PASSED","controlled_pipeline",1,1,"NONE",0.06,180,0.001350
+"VS-BENCH-053","evidence_integrity_failures","Stale Historical Price Snapshot Demotion","PASSED","controlled_pipeline",1,1,"NONE",0.06,221,0.001453
+"VS-BENCH-054","evidence_integrity_failures","Canonical URL Deduplication Across 5 Affiliate Query Variants","FAILED","controlled_pipeline",1,0,"DEDUPLICATION_FAILURE",11.42,206,0.001415
+"VS-BENCH-055","evidence_integrity_failures","Price Claim Without Supporting Extracted Evidence Excerpt","PASSED","controlled_pipeline",1,1,"NONE",0.26,202,0.001405
+"VS-BENCH-056","evidence_integrity_failures","Ambiguous Stock Phrasing ('Contact Sales for Lead Times')","PASSED","controlled_pipeline",1,1,"NONE",0.08,210,0.001425
+"VS-BENCH-057","evidence_integrity_failures","Preservation of Contradictory Prices in Discrepancy View","PASSED","controlled_pipeline",1,1,"NONE",0.07,215,0.001437
+"VS-BENCH-058","evidence_integrity_failures","Indirect Prompt Injection Resistance in Webpage Review DOM","PASSED","controlled_pipeline",2,2,"NONE",0.71,201,0.001403
+"VS-BENCH-059","evidence_integrity_failures","Upstream Search Provider 502 Bad Gateway Partial Completion","PASSED","controlled_pipeline",2,2,"NONE",0.09,246,0.001515
+"VS-BENCH-060","evidence_integrity_failures","Hallucinated Attribution Mismatch Defense","PASSED","controlled_pipeline",1,1,"NONE",0.08,234,0.001485

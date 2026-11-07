@@ -89,7 +89,8 @@ describe('Research History UI Components (Step 49)', () => {
 
       await waitFor(() => {
         expect(fetchSpy).toHaveBeenCalledWith(
-          expect.stringContaining('query=lenovo+thinkpad')
+          expect.stringContaining('query=lenovo+thinkpad'),
+          expect.anything()
         );
       });
     });

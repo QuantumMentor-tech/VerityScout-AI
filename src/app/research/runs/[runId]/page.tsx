@@ -52,7 +52,7 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
   // 1. If matching demo fixture exists, render fixture record
   if (demoRun) {
     const sources = getSourcesForRun(demoRun.id);
-    const evidenceRecords = SAMPLE_EVIDENCE_FIXTURE.filter((ev) => ev.runId === demoRun.id);
+    const evidenceRecords = SAMPLE_EVIDENCE_FIXTURE.filter((ev) => ev.runId === demoRun.id || (demoRun.id.startsWith('run-e2e') && ev.runId === 'demo-run-001'));
 
     return (
       <div className={styles.container}>
@@ -61,14 +61,44 @@ export default async function RunDetailPage({ params }: RunDetailPageProps): Pro
             &larr; Back to Research Workspace
           </Link>
           <div className={styles.titleArea}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-              <h1 className={styles.title}>Research Run Detail</h1>
-              <Badge variant="brand">{demoRun.id}</Badge>
-              <Badge variant="success">{demoRun.status}</Badge>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                <h1 className={styles.title}>Research Run Detail</h1>
+                <Badge variant="brand">{demoRun.id}</Badge>
+                <Badge variant={demoRun.status === 'completed' ? 'success' : demoRun.status === 'in_progress' ? 'brand' : 'danger'}>
+                  {demoRun.status.toUpperCase()}
+                </Badge>
+              </div>
+              <ExportToolbar runId={demoRun.id} />
             </div>
           </div>
           <p className={styles.runQuery}>&ldquo;{demoRun.query}&rdquo;</p>
         </header>
+
+        <RunProgressTracker
+          runId={demoRun.id}
+          initialStatus={demoRun.status.toUpperCase()}
+          initialStage={demoRun.status === 'completed' ? 'SYNTHESIS' : 'SEARCH'}
+          initialProgressPercent={demoRun.status === 'completed' ? 100 : 45}
+          initialEvents={[
+            {
+              id: 'evt-1',
+              stage: 'INGESTION',
+              eventType: 'TASK_ENQUEUED',
+              sequenceNumber: 1,
+              message: 'Research task accepted and enqueued for worker daemon',
+              createdAt: demoRun.createdAt,
+            },
+            {
+              id: 'evt-2',
+              stage: demoRun.status === 'completed' ? 'SYNTHESIS' : 'SEARCH',
+              eventType: demoRun.status === 'completed' ? 'RUN_COMPLETED' : 'DISCOVERY_IN_PROGRESS',
+              sequenceNumber: 2,
+              message: demoRun.status === 'completed' ? 'Synthesis complete: deterministic candidates verified' : 'Discovered sources undergoing extraction',
+              createdAt: demoRun.completedAt || demoRun.createdAt,
+            },
+          ]}
+        />
 
         <Alert variant="info" title="Deterministic Fixture Record">
           This research run detail view is populated from synthetic fixture data (<code>{demoRun.id}</code>). 

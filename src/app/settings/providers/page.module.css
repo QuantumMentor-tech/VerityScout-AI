@@ -62,3 +62,13 @@
   border-radius: var(--radius-xs);
   color: var(--color-text-secondary);
 }
+
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-4);
+  }
+
+  .providerGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,101 @@
+# ==============================================================================
+# VerityScout AI — Staging Environment Compose Specification
+# ==============================================================================
+# Governed by: ADR-002, ADR-012, Step 58.
+# Provides fully isolated pre-release staging services with dedicated database volume
+# and strict process separation between Web Ingress and Research Worker.
+# ==============================================================================
+
+name: verityscout-staging
+
+services:
+  postgres-staging:
+    image: postgres:16-alpine
+    container_name: verityscout-staging-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${STAGING_POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: ${STAGING_POSTGRES_USER:-verityscout_staging}
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:-verityscout_staging_password}
+      POSTGRES_DB: ${STAGING_POSTGRES_DB:-verityscout_staging}
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STAGING_POSTGRES_USER:-verityscout_staging} -d ${STAGING_POSTGRES_DB:-verityscout_staging}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - verityscout-staging-net
+
+  web-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: verityscout-staging-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${STAGING_WEB_PORT:-3001}:3000"
+    environment:
+      NODE_ENV: production
+      APP_ENV: staging
+      APP_URL: ${STAGING_APP_URL:-https://staging.verityscout.example.com}
+      PORT: 3000
+      POSTGRES_HOST: postgres-staging
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${STAGING_POSTGRES_USER:-verityscout_staging}
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:-verityscout_staging_password}
+      POSTGRES_DB: ${STAGING_POSTGRES_DB:-verityscout_staging}
+      POSTGRES_SSL: "false"
+      VAULT_MASTER_KEY: ${STAGING_VAULT_MASTER_KEY:-0000000000000000000000000000000000000000000000000000000000000001}
+      LOG_LEVEL: info
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - verityscout-staging-net
+
+  worker-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: verityscout-staging-worker
+    command: ["npm", "run", "worker"]
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      APP_ENV: staging
+      POSTGRES_HOST: postgres-staging
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${STAGING_POSTGRES_USER:-verityscout_staging}
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:-verityscout_staging_password}
+      POSTGRES_DB: ${STAGING_POSTGRES_DB:-verityscout_staging}
+      POSTGRES_SSL: "false"
+      VAULT_MASTER_KEY: ${STAGING_VAULT_MASTER_KEY:-0000000000000000000000000000000000000000000000000000000000000001}
+      LOG_LEVEL: info
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+      web-staging:
+        condition: service_healthy
+    networks:
+      - verityscout-staging-net
+
+networks:
+  verityscout-staging-net:
+    driver: bridge
+
+volumes:
+  staging_postgres_data:
+    name: verityscout_staging_postgres_data
+

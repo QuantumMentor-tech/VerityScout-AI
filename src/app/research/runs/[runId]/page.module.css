@@ -76,6 +76,10 @@
 }
 
 @media (max-width: 640px) {
+  .container {
+    padding: var(--space-4);
+  }
+
   .attributeGrid {
     grid-template-columns: 1fr;
   }

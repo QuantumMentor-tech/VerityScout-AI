@@ -1,0 +1,91 @@
+# ==============================================================================
+# VerityScout AI — Production Environment Compose Reference
+# ==============================================================================
+# Governed by: ADR-002, ADR-012, Step 58.
+# Target: Single Linux Host / Container Orchestration Platform.
+# Strict Rule: Production credentials MUST be supplied via protected host environment
+# or platform secret manager. NEVER commit production secrets here.
+# ==============================================================================
+
+name: verityscout-prod
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: verityscout-prod-web
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production
+      APP_ENV: production
+      APP_URL: ${APP_URL}
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      POSTGRES_SSL: ${POSTGRES_SSL:-true}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-20}
+      DATABASE_POOL_IDLE_TIMEOUT_MS: 30000
+      DATABASE_POOL_CONNECTION_TIMEOUT_MS: 5000
+      VAULT_MASTER_KEY: ${VAULT_MASTER_KEY}
+      VAULT_KEYRING: ${VAULT_KEYRING:-}
+      VAULT_ACTIVE_KEY_VERSION: ${VAULT_ACTIVE_KEY_VERSION:-1}
+      LOG_LEVEL: ${LOG_LEVEL:-warn}
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1536M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health/ready || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - verityscout-prod-net
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: verityscout-prod-worker
+    command: ["npm", "run", "worker"]
+    restart: always
+    environment:
+      NODE_ENV: production
+      APP_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      POSTGRES_SSL: ${POSTGRES_SSL:-true}
+      DATABASE_POOL_MAX: 10
+      DATABASE_POOL_IDLE_TIMEOUT_MS: 30000
+      DATABASE_POOL_CONNECTION_TIMEOUT_MS: 5000
+      VAULT_MASTER_KEY: ${VAULT_MASTER_KEY}
+      VAULT_KEYRING: ${VAULT_KEYRING:-}
+      VAULT_ACTIVE_KEY_VERSION: ${VAULT_ACTIVE_KEY_VERSION:-1}
+      LOG_LEVEL: ${LOG_LEVEL:-warn}
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2048M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    stop_grace_period: 30s
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - verityscout-prod-net
+
+networks:
+  verityscout-prod-net:
+    driver: bridge
+

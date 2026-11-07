@@ -44,8 +44,15 @@
 }
 
 @media (max-width: 900px) {
+  .workspaceGrid,
   .placeholderGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-4);
   }
 }
 

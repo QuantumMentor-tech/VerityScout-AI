@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import styles from './CandidateEvidenceView.module.css';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, Badge, Button } from '@/components/ui';
 import type { SampleResearchCandidate } from '@/fixtures/types';
@@ -44,6 +44,40 @@ export function CandidateEvidenceView({
     setSelectedCandidateName(undefined);
   }, []);
 
+  // Performance Optimization (Step 57):
+  // Pre-index evidence records by candidateId and claimKey to replace O(C * A * E) filter/find
+  // operations in render loops with O(1) constant-time Map lookups.
+  const evidenceIndex = useMemo(() => {
+    const byCandidate = new Map<string, EvidenceRecord[]>();
+    const byCandidateAndKey = new Map<string, Map<string, EvidenceRecord>>();
+
+    for (const ev of evidenceRecords) {
+      if (!ev.candidateId) continue;
+
+      // Group by candidateId
+      let candList = byCandidate.get(ev.candidateId);
+      if (!candList) {
+        candList = [];
+        byCandidate.set(ev.candidateId, candList);
+      }
+      candList.push(ev);
+
+      // Group by candidateId + claimKey
+      if (ev.claimKey) {
+        let keyMap = byCandidateAndKey.get(ev.candidateId);
+        if (!keyMap) {
+          keyMap = new Map();
+          byCandidateAndKey.set(ev.candidateId, keyMap);
+        }
+        if (!keyMap.has(ev.claimKey)) {
+          keyMap.set(ev.claimKey, ev);
+        }
+      }
+    }
+
+    return { byCandidate, byCandidateAndKey };
+  }, [evidenceRecords]);
+
   return (
     <div className={styles.container}>
       <section>
@@ -60,7 +94,8 @@ export function CandidateEvidenceView({
 
         <div className={styles.candidatesList} data-testid="candidates-list">
           {candidates.map((cand) => {
-            const candEvidence = evidenceRecords.filter((ev) => ev.candidateId === cand.id);
+            const candEvidence = evidenceIndex.byCandidate.get(cand.id) ?? [];
+            const candKeyMap = evidenceIndex.byCandidateAndKey.get(cand.id);
 
             return (
               <Card key={cand.id} variant="default" data-testid={`candidate-card-${cand.id}`}>
@@ -85,7 +120,7 @@ export function CandidateEvidenceView({
                 <CardContent>
                   <div className={styles.attributeGrid}>
                     {cand.verifiedAttributes.map((attr, idx) => {
-                      const matchedEvidence = candEvidence.find((ev) => ev.claimKey === attr.key);
+                      const matchedEvidence = candKeyMap?.get(attr.key);
 
                       return (
                         <div key={idx} className={styles.attributeItem} data-testid={`attribute-item-${idx}`}>

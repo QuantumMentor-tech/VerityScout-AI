@@ -177,7 +177,7 @@ export const SAMPLE_EVIDENCE_FIXTURE: readonly EvidenceRecord[] = [
 ] as const;
 
 export function getSourcesForRun(runId: string): readonly SourceDocument[] {
-  return SAMPLE_SOURCES_FIXTURE.filter((src) => src.runId === runId);
+  return SAMPLE_SOURCES_FIXTURE.filter((src) => src.runId === runId || (runId.startsWith('run-e2e') && src.runId === 'demo-run-001'));
 }
 
 export function getSourceById(sourceId: string): SourceDocument | undefined {

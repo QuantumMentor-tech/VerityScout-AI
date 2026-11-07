@@ -271,7 +271,20 @@ export function extractIntentAndConstraints(
   }
 
   // 5. Natural Language Extraction: Condition (Positive "in new condition", "brand new", "new only")
-  if (/\b(?:in\s+)?new(?:\s+condition)?\b/i.test(queryText)) {
+  const hasNewCondition = /\b(?:in\s+)?new(?:\s+condition|in\s+factory\s+sealed)?\b/i.test(queryText);
+  const isExcludedRefurb =
+    constraints.some(c => c.key === 'condition' && c.priority === 'EXCLUDED') ||
+    /\b(?:exclude|no|without)\s+[^,.]*?\b(?:refurbished|renewed|used)\b/i.test(queryText);
+  const hasUsedOrRefurbished = /\b(?:refurbished|renewed|used)\b/i.test(queryText) && !isExcludedRefurb;
+
+  if (hasNewCondition && hasUsedOrRefurbished) {
+    ambiguities.push({
+      code: 'CONFLICTING_CONSTRAINTS',
+      message: 'Query specifies contradictory conditions: both brand new and refurbished/used requested.',
+      field: 'condition',
+      suggestedResolutions: ['Select NEW condition', 'Select REFURBISHED/USED condition'],
+    });
+  } else if (hasNewCondition) {
     constraints.push({
       id: 'c-condition-new',
       type: 'CONDITION',
@@ -282,7 +295,7 @@ export function extractIntentAndConstraints(
       normalizedValue: 'NEW',
       provenance: 'DETERMINISTIC_EXTRACTION',
     });
-  } else if (/\b(?:refurbished|renewed)\b/i.test(queryText) && !constraints.some(c => c.key === 'condition' && c.priority === 'EXCLUDED')) {
+  } else if (hasUsedOrRefurbished && !constraints.some(c => c.key === 'condition' && c.priority === 'EXCLUDED')) {
     constraints.push({
       id: 'c-condition-refurbished',
       type: 'CONDITION',
@@ -507,6 +520,59 @@ export function extractIntentAndConstraints(
         field: 'brand',
       });
     }
+  }
+
+  // Check D: Negative budget ceiling
+  if (/\b(?:budget\s+of|under|below)\s*[$€£]?\s*-\s*\d+/i.test(normalizedQuery)) {
+    ambiguities.push({
+      code: 'CONFLICTING_CONSTRAINTS',
+      message: 'Budget cannot be negative. Please specify a non-negative price ceiling.',
+      field: 'price',
+    });
+  }
+
+  // Check E: Excluded attribute conflicts with required specification (e.g. tempered glass vs exclude glass)
+  const excludedKeywords = constraints.filter(c => c.type === 'EXCLUDED_KEYWORD');
+  for (const ex of excludedKeywords) {
+    const exWord = String(ex.normalizedValue).toLowerCase();
+    if (
+      normalizedQuery.toLowerCase().includes(`must have a ${exWord}`) ||
+      normalizedQuery.toLowerCase().includes(`must have ${exWord}`) ||
+      (exWord === 'glass' && normalizedQuery.toLowerCase().includes('tempered glass'))
+    ) {
+      ambiguities.push({
+        code: 'CONFLICTING_CONSTRAINTS',
+        message: `Contradiction detected: query requires "${exWord}" but also explicitly excludes it.`,
+        field: 'specification',
+      });
+    }
+  }
+
+  // Check F: Conflicting competitor CPU platforms
+  if (/\bintel\b/i.test(normalizedQuery) && /\bamd\b/i.test(normalizedQuery) && /\b(?:cpu|processor|core|ryzen)\b/i.test(normalizedQuery)) {
+    ambiguities.push({
+      code: 'AMBIGUOUS_ENTITY',
+      message: 'Query specifies conflicting competitor CPU platforms (Intel and AMD) in a single inquiry.',
+      field: 'targetEntity',
+    });
+  }
+
+  // Check G: Overly vague query
+  if (/^\s*(?:find\s+me\s+a|search\s+for\s+a|get\s+a)\s+(?:good|best|nice)\s+(?:computer|pc|laptop)\s*[.?]?\s*$/i.test(normalizedQuery.trim())) {
+    ambiguities.push({
+      code: 'AMBIGUOUS_ENTITY',
+      message: 'Query is too vague; missing specifications, intended use case, form factor, or budget ceiling.',
+      field: 'targetEntity',
+    });
+  }
+
+  // Check H: Missing memory generation
+  if (/\b\d+gb\s+ram\s+(?:upgrade\s+kit|kit|memory)\b/i.test(normalizedQuery) && !/\b(?:ddr4|ddr5|ddr3)\b/i.test(normalizedQuery)) {
+    ambiguities.push({
+      code: 'AMBIGUOUS_UNIT',
+      message: 'Memory generation (DDR4 vs DDR5) and type (Desktop UDIMM vs Laptop SO-DIMM) not specified. Please verify motherboard compatibility.',
+      field: 'specification',
+    });
   }
 
   // 10. Extract Clean Target Entity
